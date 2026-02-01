@@ -3,16 +3,19 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { WorkflowSteps } from '@/components/workflow/WorkflowSteps';
 import { DashboardView } from '@/components/views/DashboardView';
+import { TemplateSelectionView } from '@/components/views/TemplateSelectionView';
 import { TemplateUploadView } from '@/components/views/TemplateUploadView';
 import { DocumentUploadView } from '@/components/views/DocumentUploadView';
 import { ReviewView } from '@/components/views/ReviewView';
-import type { TemplateVariable, UploadedDocument, WorkflowStep } from '@/types/document';
+import type { Template, TemplateVariable, UploadedDocument, WorkflowStep } from '@/types/document';
 import { toast } from 'sonner';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [workflowStep, setWorkflowStep] = useState<WorkflowStep>('select-template');
   const [completedSteps, setCompletedSteps] = useState<WorkflowStep[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedCategoryName, setSelectedCategoryName] = useState<string>('');
   
   // Workflow data
   const [templateContent, setTemplateContent] = useState('');
@@ -28,16 +31,26 @@ const Index = () => {
       setTemplateContent('');
       setVariables([]);
       setDocuments([]);
+      setSelectedCategoryId(null);
+      setSelectedCategoryName('');
     }
   }, []);
 
-  const handleStartWorkflow = useCallback((step: WorkflowStep, categoryId?: string) => {
+  const handleStartWorkflow = useCallback((step: WorkflowStep, categoryId?: string, categoryName?: string) => {
     setCurrentPage('workflow');
     setWorkflowStep(step);
-    if (step === 'upload-documents' && categoryId) {
-      // Pre-populate with category template
-      setCompletedSteps(['select-template']);
+    if (step === 'select-template' && categoryId) {
+      setSelectedCategoryId(categoryId);
+      setSelectedCategoryName(categoryName || '');
     }
+  }, []);
+
+  const handleSelectTemplate = useCallback((template: Template) => {
+    setTemplateContent(template.content);
+    setVariables(template.variables);
+    setCompletedSteps(['select-template']);
+    setWorkflowStep('upload-documents');
+    toast.success(`Modelo "${template.name}" selecionado com ${template.variables.length} campos`);
   }, []);
 
   const handleTemplateComplete = useCallback((content: string, vars: TemplateVariable[]) => {
@@ -104,6 +117,23 @@ const Index = () => {
                 transition={{ duration: 0.3 }}
               >
                 <DashboardView onStartWorkflow={handleStartWorkflow} />
+              </motion.div>
+            )}
+
+            {isWorkflow && workflowStep === 'select-template' && selectedCategoryId && (
+              <motion.div
+                key="select-template"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <TemplateSelectionView
+                  categoryId={selectedCategoryId}
+                  categoryName={selectedCategoryName}
+                  onSelectTemplate={handleSelectTemplate}
+                  onBack={() => handleNavigate('dashboard')}
+                />
               </motion.div>
             )}
 
