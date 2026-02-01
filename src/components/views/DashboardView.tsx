@@ -34,7 +34,7 @@ const categories: DocumentCategory[] = [
 
 interface DashboardViewProps {
   userName?: string;
-  onStartWorkflow: (step: WorkflowStep, categoryId?: string) => void;
+  onStartWorkflow: (step: WorkflowStep, categoryId?: string, categoryName?: string) => void;
 }
 
 export function DashboardView({ userName = 'Usuário', onStartWorkflow }: DashboardViewProps) {
@@ -83,7 +83,7 @@ export function DashboardView({ userName = 'Usuário', onStartWorkflow }: Dashbo
             key={category.id}
             category={category}
             index={index}
-            onClick={() => onStartWorkflow('upload-documents', category.id)}
+            onClick={() => onStartWorkflow('select-template', category.id, category.name)}
           />
         ))}
       </div>
