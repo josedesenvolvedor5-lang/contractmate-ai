@@ -1,4 +1,5 @@
 import type { Template } from '@/types/document';
+import { contratoTemplates } from './contractTemplates';
 
 export const requerimentoTemplates: Template[] = [
   {
@@ -321,7 +322,7 @@ export const requerimentoTemplates: Template[] = [
   },
 ];
 
-export const allTemplates = [...requerimentoTemplates];
+export const allTemplates = [...requerimentoTemplates, ...contratoTemplates];
 
 export function getTemplatesByCategory(category: string): Template[] {
   return allTemplates.filter((t) => t.category === category);

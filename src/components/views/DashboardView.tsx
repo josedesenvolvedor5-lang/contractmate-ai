@@ -27,8 +27,8 @@ const categories: DocumentCategory[] = [
     name: 'Contratos',
     description: 'Contratos comerciais e civis entre partes',
     icon: 'Scroll',
-    requiredDocs: ['Cópia documento das partes', 'Comprovante de Endereço', 'Certidão de Nascimento'],
-    templateCount: 15,
+    requiredDocs: ['RG/CNH das partes', 'CPF', 'Certidão de Casamento', 'Comprovante de Endereço', 'Matrícula do Imóvel'],
+    templateCount: 1,
   },
 ];
 
