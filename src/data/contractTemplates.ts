@@ -23,7 +23,7 @@ export const contratoTemplates: Template[] = [
 
 <h2>II – Outorgado(a) comprador(a):</h2>
 
-<p><strong>{{nome_comprador}}</strong>, filho(a) de {{filiacao_pai_comprador}} e de {{filiacao_mae_comprador}}, portador(a) da cédula de identidade RG nº {{rg_comprador}}/SSP/SP, e do CPF/MF nº {{cpf_comprador}}, {{nacionalidade_comprador}}, {{profissao_comprador}}, {{estado_civil_comprador}}, conforme {{certidao_estado_civil_comprador}}, extraída da matrícula {{matricula_certidao_comprador}} do Oficial de Registro Civil das Pessoas Naturais do {{subdistrito_comprador}}º Subdistrito da cidade de {{cidade_certidao_comprador}}, residente e domiciliado(a) na cidade de {{cidade_comprador}}, na {{endereco_comprador}}, nº {{numero_endereco_comprador}}, {{complemento_endereco_comprador}} – CEP {{cep_comprador}}, endereço eletrônico: {{email_comprador}}.</p>
+<p><strong>{{nome_comprador}}</strong>, filho(a) de {{filiacao_pai_comprador}} e de {{filiacao_mae_comprador}}, portador(a) da cédula de identidade RG nº {{rg_comprador}}/SSP/SP, e do CPF/MF nº {{cpf_comprador}}, {{nacionalidade_comprador}}, {{profissao_comprador}}, {{estado_civil_comprador}}, conforme {{certidao_estado_civil_comprador}}, extraída da matrícula {{matricula_certidao_comprador}} do Oficial de Registro Civil das Pessoas Naturais do {{subdistrito_comprador}}º Subdistrito da cidade de {{cidade_certidao_comprador}}, {{declaracao_uniao_estavel}}, residente e domiciliado(a) na cidade de {{cidade_comprador}}, na {{endereco_comprador}}, nº {{numero_endereco_comprador}}, {{complemento_endereco_comprador}} – CEP {{cep_comprador}}, endereço eletrônico: {{email_comprador}}.</p>
 
 <p>Os presentes, maiores e capazes, os quais declaram conhecerem-se mutuamente e reconhecidos como os próprios de que trato, pelo exame dos documentos apresentados, acima referidos, do que dou fé.</p>
 
@@ -31,7 +31,7 @@ export const contratoTemplates: Template[] = [
 
 <p>Pelo(s) referido(s) outorgante(s) vendedor(a)(es), me foi dito que, a justo título, livre e desembaraçado de quaisquer ônus, judiciais ou extrajudiciais, é(são) senhor(a)(es) e legítimo(s) possuidor(a)(es) do(s) seguinte(s) bem(ns) imóvel(is):</p>
 
-<p>{{descricao_imovel}}</p>
+<p>{{descricao_imovel}}, situado nesta cidade, Estado de São Paulo, no bairro {{bairro_imovel}}, com frente para a {{rua_frente_imovel}}, estando descrito e caracterizado na matrícula nº {{matricula_imovel}} do {{numero_registro_imobiliario}}º Oficial de Registro de Imóveis da cidade de {{cidade_registro_imovel}}.</p>
 
 <h3>III.1) Cadastro na Prefeitura municipal e valor venal:</h3>
 
@@ -41,11 +41,13 @@ export const contratoTemplates: Template[] = [
 
 <p>Havido através do registro nº {{registro_aquisitivo}} de {{data_registro_aquisitivo}}, na matrícula nº {{matricula_aquisitiva}} do {{numero_registro_aquisitivo}}º Oficial de Registro Imobiliário local.</p>
 
+<p>{{observacao_escritura_procedencia}}</p>
+
 <h2>IV – DA COMPRA E VENDA, PREÇO, FORMA DE PAGAMENTO, QUITAÇÃO E TRANSFERÊNCIA:</h2>
 
 <p>Pelo(a)(s) outorgante(s) vendedor(a)(es) me foi dito que por esta escritura pública e na melhor forma de direito VENDE(M) o(s) imóvel(is) supra ao(s) outorgado(a)(s) comprador(a)(es), pelo preço certo e ajustado de R$ {{valor_venda}} ({{valor_venda_extenso}}), que o(a)(s) outorgante(s) vendedor(a)(es) confessa(m) e declara(m) já haver recebido anteriormente do(a)(s) outorgado(a)(s) comprador(a)(es), na forma contratada entre eles, em {{data_pagamento}}, pagos através de {{forma_pagamento}}, na conta de destino, do Banco {{banco_vendedor}}, agência {{agencia_vendedor}}, conta nº {{conta_vendedor}} de titularidade dele(a)(s) vendedor(a)(es).</p>
 
-<p>Referido pagamento foi feito pelo(a)(s) comprador(a)(es), pela conta de origem, do Banco {{banco_comprador}}, agência {{agencia_comprador}}, conta nº {{conta_comprador}} de titularidade dele(a)(s) comprador(a)(es).</p>
+<p>Referido pagamento foi feito pelo(a)(s) comprador(a)(es), pela conta de origem, do Banco {{banco_comprador}}, agência {{agencia_comprador}}, conta nº {{conta_comprador}} de titularidade dele(a)(s) comprador(a)(es), conforme declara(m) {{complemento_pagamento}}.</p>
 
 <p>Assim, de cujo preço total expressa(m) e dá(ão) plena, geral e irrevogável quitação de pago(a)(s) e satisfeito(a)(s) para nunca mais o repetir, e desde já transfere(m)-lhe toda a posse, domínio, direitos e ações que exercia(m) sobre o(s) mencionado(s) imóvel(is), para que dele o(a)(s) mencionado(a)(s) comprador(a)(es) possa usar, gozar e livremente dispor como seu que fica sendo, obrigando-se o(a)(s) outorgante(s) vendedor(a)(es), por si e seus sucessores, a fazer a presente venda sempre boa, firme e valiosa, respondendo pela evicção, na forma da lei.</p>
 
@@ -56,16 +58,38 @@ export const contratoTemplates: Template[] = [
 <h2>VI – DECLARAÇÕES:</h2>
 
 <p><strong>Do(a)(s) vendedor(a)(es):</strong></p>
+
 <p>a) que não existem em trâmite ações fundadas em direito real ou pessoal que afetem o(s) imóvel(is) ora vendido(s);</p>
-<p>b) que não possui(em) inscrição e/ou vínculos junto ao INSS como empregador(es), não comercializa(m), não exporta(m) e nem vende(m) ao consumidor produtos agropecuários, não se enquadrando nas restrições da IN/MPS/SRP número 03, de 14 de julho de 2005, e Decreto número 3.048, de 06 de maio de 1999;</p>
-<p>c) que foram apresentadas as certidões pessoais do(a)(s) outorgante(s) vendedor(a)(es), conferidas, aceitas, e entregues ao(à)(s) outorgado(a)(s) comprador(a)(es);</p>
-<p>d) Declara(m) o(a)(s) outorgante(s) vendedor(a)(es), sob as penas da lei, sob responsabilidade civil e criminal, que é(são) totalmente responsável(is) pelos pagamentos de quaisquer débitos tributários acaso existentes e que recaiam sobre o(s) imóvel(is) até a presente data.</p>
+
+<p>b) que não possui(em) inscrição e/ou vínculos junto ao INSS como empregador(es), não comercializa(m), não exporta(m) e nem vende(m) ao consumidor produtos agropecuários, não se enquadrando nas restrições da IN/MPS/SRP número 03, de 14 de julho de 2005, e Decreto número 3.048, de 06 de maio de 1999, que aprovou o regulamento da organização e custeio da Seguridade Social tratado pela Lei 8.212, de 24 de julho de 1991;</p>
+
+<p>c) que foram apresentadas as certidões pessoais do(a)(s) outorgante(s) vendedor(a)(es), conferidas, aceitas, e entregues ao(à)(s) outorgado(a)(s) comprador(a)(es), extraídas junto à: (I) Justiça Federal de Primeiro Grau em São Paulo; (II) Receita Federal do Brasil; (III) Certidão Estadual de Distribuições Cíveis – Tribunal de Justiça do Estado de São Paulo; (IV) Tribunal Regional do Trabalho (TRT) – {{trt_regiao_1}}ª Região; (V) Tribunal Regional do Trabalho (TRT) – {{trt_regiao_2}}ª Região; (VI) Certidão do Tabelião de Protesto de Letras e Títulos de {{cidade_protesto}}; as quais são entregues ao(à)(s) outorgado(a)(s) comprador(a)(es).</p>
+
+<p>d) Declara(m) o(a)(s) outorgante(s) vendedor(a)(es), sob as penas da lei, sob responsabilidade civil e criminal, que é(são) totalmente responsável(is) pelos pagamentos de quaisquer débitos tributários acaso existentes e que recaiam sobre o(s) imóvel(is) até a presente data, inclusive débitos condominiais, obrigando-se em se houver débitos em atraso quitar os mesmos de imediato, após a apuração dos valores, sob pena de arcar(em) com as sanções previstas por lei, bem como responderem por perdas e danos.</p>
+
+<p><strong>Do(a)(s) comprador(a)(es):</strong></p>
+
+<p>Feita(s) sob penas de responsabilidade civil e criminal, ciente(s) acerca das consequências dessas declarações e de ter(em) de responder(em) pela sua eventual falsidade:</p>
+
+<p>a) Considerando as disposições do artigo 54 da Lei nº 13.097/2015, que alterou a redação do artigo 1º – parágrafo 2º, da Lei 7.433/85, dispensa a apresentação das certidões dos distribuidores judiciais para a lavratura de escrituras relativas à alienação ou oneração de bens imóveis, nos termos do parecer 46/2015-E e orientação da Corregedoria Geral da Justiça do Estado de São Paulo, conforme circular notarial 2163/2015, referente ao comunicado CG nº 276/2015.</p>
+
+<p>b) Que dispensa(m) a(s) certidão(ões) negativa(s) de débitos tributários municipais, com relação ao(s) imóvel(is) objeto(s) desta escritura, nos termos do item 60, alínea "f", do capítulo XVI das Normas de Serviço da Corregedoria Geral de Justiça do Estado de São Paulo, responsabilizando-se por eventuais débitos tributários acaso existentes.</p>
+
+<p>c) O(A)(s) adquirente(s) beneficiou-se(aram) de redução de alíquota no recolhimento do ITBI por não possuir outro imóvel no Município, conforme declara, declarando-se ainda estar ciente(s) da necessidade de fornecer à repartição competente da Prefeitura as certidões negativas de propriedade em seu(s) nome(s) expedidas pelos Cartórios de Registro de Imóveis locais, no prazo de 180 (cento e oitenta) dias, contados da data de lavratura desta escritura, sob pena de ser(em) penalizado(s) na forma da Lei Municipal {{numero_lei_itbi_unico_imovel}}, art. {{artigo_lei_itbi}}, §{{paragrafo_lei_itbi}}.</p>
+
+<p><strong>Do(a)(s) anuente(s):</strong></p>
+
+<p>Pelo(a)(s) anuente(s) na qualidade de {{qualidade_anuente}} do(a)(s) outorgante(s) vendedor(a)(es), me foi dito que anui(em) com a presente escritura, nos termos do artigo 1.647, I do Código Civil, nada tendo a reclamar presente ou futuramente.</p>
 
 <p><strong>Comum das Partes:</strong></p>
-<p>a) que foram orientadas a respeito da possibilidade de obtenção prévia de Certidão Negativa de Débitos Trabalhistas (CNDT);</p>
-<p>b) que não se enquadram como pessoas expostas politicamente, tampouco na condição de pessoa investigada ou acusada de terrorismo;</p>
-<p>c) As partes contratantes declaram que não se enquadram nas condições previstas no artigo 156 – Estado de Perigo – e no artigo 157 – Lesão – do Código Civil Brasileiro;</p>
-<p>d) As informações referentes à forma de pagamento foram prestadas pelas partes, que declaram assumir total responsabilidade pela veracidade de tais informações.</p>
+
+<p>a) que foram orientadas a respeito da possibilidade de obtenção prévia de Certidão Negativa de Débitos Trabalhistas (CNDT), nos termos do art. 642-A da Consolidação das Leis do Trabalho, acrescentado pela Lei nº 12.440, de 07 de julho de 2011, e da Recomendação nº 03/2012 do Conselho Nacional de Justiça, a qual foi apresentada e está abaixo descrita;</p>
+
+<p>b) que não se enquadram como pessoas expostas politicamente, tampouco na condição de pessoa investigada ou acusada de terrorismo e/ou sancionada pelo Conselho de Segurança das Nações Unidas na forma da Lei nº 13.810/2019;</p>
+
+<p>c) As partes contratantes, sob responsabilidade civil e criminal, em caráter irrevogável e irretratável, declaram que não se enquadram nas condições previstas no artigo 156 – Estado de Perigo – e no artigo 157 – Lesão – da Lei nº 10.406/02 (Código Civil Brasileiro), reiterando que o objeto e o valor deste negócio jurídico foram tratados livremente, sem qualquer coação ou induzimento. Ademais, declaram tratar do valor efetivo e real do negócio jurídico firmado entre eles;</p>
+
+<p>d) As informações referentes à forma de pagamento foram prestadas pelas partes, que declaram assumir total responsabilidade pela veracidade de tais informações. As partes afirmam expressamente que o pagamento foi realizado conforme os termos previstos nesta escritura, estando plenamente cientes de que a inveracidade dessas declarações enseja responsabilidade civil e criminal.</p>
 
 <h2>VII – REQUERIMENTOS:</h2>
 
@@ -73,15 +97,20 @@ export const contratoTemplates: Template[] = [
 
 <h2>VIII – DOCUMENTOS APRESENTADOS:</h2>
 
-<p>1) ITBI: Pelo(s) outorgado(s) comprador(es) me foi dito que se obriga(m) nos termos da Lei Municipal de {{cidade_comarca}}/SP nº {{numero_lei_itbi}} de {{ano_lei_itbi}}, no prazo legal exigido pela Municipalidade, apresentar(em) a(s) prova(s) do(s) pagamento(s) do Imposto sobre Transmissão de Bens Imóveis – ITBI, no(s) valor(es) de R$ {{valor_itbi}}.</p>
+<p><strong>1) ITBI:</strong> Pelo(s) outorgado(s) comprador(es) me foi dito que se obriga(m) nos termos da Lei Municipal de {{cidade_comarca}}/SP nº {{numero_lei_itbi}} de {{ano_lei_itbi}}, no prazo legal exigido pela Municipalidade, apresentar(em) a(s) prova(s) do(s) pagamento(s) do Imposto sobre Transmissão de Bens Imóveis – ITBI e de direito a eles relativos, com relação aos bens imóveis desta escritura, devidamente recolhido(s) aos cofres municipais no(s) valor(es) de R$ {{valor_itbi}} (com redução de alíquota de {{aliquota_itbi_original}}% para {{aliquota_itbi_reduzida}}%, uma vez que conforme já declarado acima, o(a)(s) outorgado(a)(s) comprador(a)(es) nos termos da Lei Municipal de {{cidade_comarca}}/SP nº {{numero_lei_itbi_unico_imovel}} de {{ano_lei_itbi_unico_imovel}}, ratifica(m) que o imóvel ora adquirido é o único que possui(em) na cidade de {{cidade_comarca}} – SP, tendo sido alertado neste ato e é de conhecimento do(a) mesmo(a)(s) que sendo apurado pela Prefeitura Municipal de {{cidade_comarca}} – SP a existência de bens em seu(s) nome(s), será(ão) penalizado(s) na forma da Lei supracitada.</p>
 
-<p>2) MATRÍCULA: Certidão(ões) de propriedade e negativa(s) de ônus e alienações da(s) matrícula(s) número(s) {{matricula_imovel}}, expedida pelo {{numero_registro_imobiliario}}º Oficial de Registro de Imóveis local, em data de {{data_certidao_matricula}}.</p>
+<p><strong>2) MATRÍCULA:</strong> Certidão(ões) de propriedade e negativa(s) de ônus e alienações da(s) matrícula(s) número(s) {{matricula_imovel}} de ordem, expedida pelo {{numero_registro_imobiliario}}º Oficial de Registro de Imóveis local, em data de {{data_certidao_matricula}}, extraída sob a forma de documento eletrônico mediante processo de certificação digital disponibilizado pela INFRAESTRUTURA DE CHAVES PÚBLICAS BRASILEIRA (ICP-Brasil), nos termos da Medida Provisória nº 2.200, de 24 de agosto de 2001; não constando da mesma registro de citação de ações reais ou pessoais reipersecutórias, averbação de constrição judicial, do ajuizamento de ação de execução ou de fase de cumprimento de sentença, e demais situações previstas no artigo 54 da Lei nº 13.097/2015, que alterou a redação do artigo 1º – parágrafo 2º, da Lei 7.433/85;</p>
 
-<p>3) Certidão(ões) Negativa(s) de Débitos Trabalhistas (CNDT).</p>
+<p><strong>3) Certidão(ões) Negativa(s) de Débitos Trabalhistas (CNDT):</strong></p>
+<p>a) em nome de {{nome_cndt_1}}: {{numero_cndt_1}};</p>
+<p>b) em nome de {{nome_cndt_2}}: {{numero_cndt_2}};</p>
 
-<p>4) Indisponibilidade: Foi consultada a central de indisponibilidade, nos termos do provimento nº 13/2012 da Corregedoria Geral de Justiça do Estado de São Paulo.</p>
+<p><strong>4) Indisponibilidade:</strong> Foi consultada a central de indisponibilidade, nos termos do provimento nº 13/2012 da Corregedoria Geral de Justiça do Estado de São Paulo:</p>
+<p>a) em nome de {{nome_indisponibilidade_1}}, tendo sido gerado o resultado NEGATIVO e código hash {{hash_indisponibilidade_1}};</p>
+<p>b) em nome de {{nome_indisponibilidade_2}}, tendo sido gerado o resultado NEGATIVO e código hash {{hash_indisponibilidade_2}};</p>
 
-<p>5) CERTIDÃO NEGATIVA DE DÉBITOS MUNICIPAIS.</p>
+<p><strong>5) CERTIDÃO NEGATIVA DE DÉBITOS MUNICIPAIS:</strong> Certidão(ões) Negativa(s) de Imobiliário, emitida(s) pela Prefeitura Municipal de {{cidade_comarca}}, a seguir:</p>
+<p>Certidão nº {{numero_certidao_municipal}}, emitida em {{data_certidao_municipal}}, código de autenticidade: {{codigo_autenticidade_certidao}}, a qual fica arquivada nestas notas, na pasta própria número {{numero_pasta_arquivo}} sob o(s) número(s) {{numero_ordem_arquivo}} de ordem.</p>
 
 <h2>IX – ARQUIVAMENTOS:</h2>
 
@@ -171,36 +200,77 @@ CPF: {{cpf_comprador}}
       { id: 'v53', name: 'matricula_certidao_comprador', displayName: 'Matrícula Certidão', type: 'text', required: true },
       { id: 'v54', name: 'subdistrito_comprador', displayName: 'Subdistrito Comprador', type: 'text', required: true },
       { id: 'v55', name: 'cidade_certidao_comprador', displayName: 'Cidade Certidão', type: 'text', required: true },
-      { id: 'v56', name: 'cidade_comprador', displayName: 'Cidade Comprador', type: 'text', required: true },
-      { id: 'v57', name: 'endereco_comprador', displayName: 'Endereço Comprador', type: 'address', required: true },
-      { id: 'v58', name: 'numero_endereco_comprador', displayName: 'Nº End. Comprador', type: 'text', required: true },
-      { id: 'v59', name: 'complemento_endereco_comprador', displayName: 'Compl. End. Comprador', type: 'text', required: false },
-      { id: 'v60', name: 'cep_comprador', displayName: 'CEP Comprador', type: 'text', required: true },
-      { id: 'v61', name: 'email_comprador', displayName: 'E-mail Comprador', type: 'email', required: false },
+      { id: 'v56', name: 'declaracao_uniao_estavel', displayName: 'Declaração União Estável', type: 'text', required: false },
+      { id: 'v57', name: 'cidade_comprador', displayName: 'Cidade Comprador', type: 'text', required: true },
+      { id: 'v58', name: 'endereco_comprador', displayName: 'Endereço Comprador', type: 'address', required: true },
+      { id: 'v59', name: 'numero_endereco_comprador', displayName: 'Nº End. Comprador', type: 'text', required: true },
+      { id: 'v60', name: 'complemento_endereco_comprador', displayName: 'Compl. End. Comprador', type: 'text', required: false },
+      { id: 'v61', name: 'cep_comprador', displayName: 'CEP Comprador', type: 'text', required: true },
+      { id: 'v62', name: 'email_comprador', displayName: 'E-mail Comprador', type: 'email', required: false },
 
       // Imóvel
-      { id: 'v62', name: 'descricao_imovel', displayName: 'Descrição do Imóvel', type: 'text', required: true },
-      { id: 'v63', name: 'cadastro_municipal', displayName: 'Cadastro Municipal', type: 'text', required: true },
-      { id: 'v64', name: 'registro_aquisitivo', displayName: 'Nº Registro Aquisitivo', type: 'text', required: true },
-      { id: 'v65', name: 'data_registro_aquisitivo', displayName: 'Data Reg. Aquisitivo', type: 'date', required: true },
-      { id: 'v66', name: 'matricula_aquisitiva', displayName: 'Matrícula Aquisitiva', type: 'text', required: true },
-      { id: 'v67', name: 'numero_registro_aquisitivo', displayName: 'Nº Ofício Reg. Aquisitivo', type: 'text', required: true },
+      { id: 'v63', name: 'descricao_imovel', displayName: 'Descrição do Imóvel', type: 'text', required: true },
+      { id: 'v64', name: 'bairro_imovel', displayName: 'Bairro do Imóvel', type: 'text', required: true },
+      { id: 'v65', name: 'rua_frente_imovel', displayName: 'Rua de Frente do Imóvel', type: 'text', required: true },
+      { id: 'v66', name: 'cidade_registro_imovel', displayName: 'Cidade Registro Imóvel', type: 'text', required: true },
+      { id: 'v67', name: 'cadastro_municipal', displayName: 'Cadastro Municipal', type: 'text', required: true },
+      { id: 'v68', name: 'registro_aquisitivo', displayName: 'Nº Registro Aquisitivo', type: 'text', required: true },
+      { id: 'v69', name: 'data_registro_aquisitivo', displayName: 'Data Reg. Aquisitivo', type: 'date', required: true },
+      { id: 'v70', name: 'matricula_aquisitiva', displayName: 'Matrícula Aquisitiva', type: 'text', required: true },
+      { id: 'v71', name: 'numero_registro_aquisitivo', displayName: 'Nº Ofício Reg. Aquisitivo', type: 'text', required: true },
+      { id: 'v72', name: 'observacao_escritura_procedencia', displayName: 'Obs. Escritura Procedência', type: 'text', required: false },
 
       // Pagamento
-      { id: 'v68', name: 'data_pagamento', displayName: 'Data do Pagamento', type: 'date', required: true },
-      { id: 'v69', name: 'forma_pagamento', displayName: 'Forma de Pagamento', type: 'text', required: true },
-      { id: 'v70', name: 'banco_vendedor', displayName: 'Banco Vendedor', type: 'text', required: true },
-      { id: 'v71', name: 'agencia_vendedor', displayName: 'Agência Vendedor', type: 'text', required: true },
-      { id: 'v72', name: 'conta_vendedor', displayName: 'Conta Vendedor', type: 'text', required: true },
-      { id: 'v73', name: 'banco_comprador', displayName: 'Banco Comprador', type: 'text', required: true },
-      { id: 'v74', name: 'agencia_comprador', displayName: 'Agência Comprador', type: 'text', required: true },
-      { id: 'v75', name: 'conta_comprador', displayName: 'Conta Comprador', type: 'text', required: true },
+      { id: 'v73', name: 'data_pagamento', displayName: 'Data do Pagamento', type: 'date', required: true },
+      { id: 'v74', name: 'forma_pagamento', displayName: 'Forma de Pagamento', type: 'text', required: true },
+      { id: 'v75', name: 'banco_vendedor', displayName: 'Banco Vendedor', type: 'text', required: true },
+      { id: 'v76', name: 'agencia_vendedor', displayName: 'Agência Vendedor', type: 'text', required: true },
+      { id: 'v77', name: 'conta_vendedor', displayName: 'Conta Vendedor', type: 'text', required: true },
+      { id: 'v78', name: 'banco_comprador', displayName: 'Banco Comprador', type: 'text', required: true },
+      { id: 'v79', name: 'agencia_comprador', displayName: 'Agência Comprador', type: 'text', required: true },
+      { id: 'v80', name: 'conta_comprador', displayName: 'Conta Comprador', type: 'text', required: true },
+      { id: 'v81', name: 'complemento_pagamento', displayName: 'Compl. Pagamento (conforme/espécie)', type: 'text', required: false },
+
+      // Declarações - Vendedor
+      { id: 'v82', name: 'trt_regiao_1', displayName: 'TRT Região 1', type: 'text', required: false },
+      { id: 'v83', name: 'trt_regiao_2', displayName: 'TRT Região 2', type: 'text', required: false },
+      { id: 'v84', name: 'cidade_protesto', displayName: 'Cidade Protesto', type: 'text', required: false },
+
+      // Declarações - Comprador (ITBI único imóvel)
+      { id: 'v85', name: 'numero_lei_itbi_unico_imovel', displayName: 'Nº Lei ITBI (Único Imóvel)', type: 'text', required: false },
+      { id: 'v86', name: 'artigo_lei_itbi', displayName: 'Artigo Lei ITBI', type: 'text', required: false },
+      { id: 'v87', name: 'paragrafo_lei_itbi', displayName: 'Parágrafo Lei ITBI', type: 'text', required: false },
+
+      // Anuente
+      { id: 'v88', name: 'qualidade_anuente', displayName: 'Qualidade do Anuente', type: 'text', required: false },
 
       // ITBI e documentos
-      { id: 'v76', name: 'numero_lei_itbi', displayName: 'Nº Lei ITBI', type: 'text', required: false },
-      { id: 'v77', name: 'ano_lei_itbi', displayName: 'Ano Lei ITBI', type: 'text', required: false },
-      { id: 'v78', name: 'valor_itbi', displayName: 'Valor ITBI (R$)', type: 'number', required: false },
-      { id: 'v79', name: 'data_certidao_matricula', displayName: 'Data Certidão Matrícula', type: 'date', required: false },
+      { id: 'v89', name: 'numero_lei_itbi', displayName: 'Nº Lei ITBI', type: 'text', required: false },
+      { id: 'v90', name: 'ano_lei_itbi', displayName: 'Ano Lei ITBI', type: 'text', required: false },
+      { id: 'v91', name: 'valor_itbi', displayName: 'Valor ITBI (R$)', type: 'number', required: false },
+      { id: 'v92', name: 'aliquota_itbi_original', displayName: 'Alíquota ITBI Original (%)', type: 'text', required: false },
+      { id: 'v93', name: 'aliquota_itbi_reduzida', displayName: 'Alíquota ITBI Reduzida (%)', type: 'text', required: false },
+      { id: 'v94', name: 'ano_lei_itbi_unico_imovel', displayName: 'Ano Lei ITBI (Único Imóvel)', type: 'text', required: false },
+      { id: 'v95', name: 'data_certidao_matricula', displayName: 'Data Certidão Matrícula', type: 'date', required: false },
+
+      // CNDT
+      { id: 'v96', name: 'nome_cndt_1', displayName: 'Nome CNDT 1', type: 'text', required: false },
+      { id: 'v97', name: 'numero_cndt_1', displayName: 'Nº CNDT 1', type: 'text', required: false },
+      { id: 'v98', name: 'nome_cndt_2', displayName: 'Nome CNDT 2', type: 'text', required: false },
+      { id: 'v99', name: 'numero_cndt_2', displayName: 'Nº CNDT 2', type: 'text', required: false },
+
+      // Indisponibilidade
+      { id: 'v100', name: 'nome_indisponibilidade_1', displayName: 'Nome Indisponibilidade 1', type: 'text', required: false },
+      { id: 'v101', name: 'hash_indisponibilidade_1', displayName: 'Hash Indisponibilidade 1', type: 'text', required: false },
+      { id: 'v102', name: 'nome_indisponibilidade_2', displayName: 'Nome Indisponibilidade 2', type: 'text', required: false },
+      { id: 'v103', name: 'hash_indisponibilidade_2', displayName: 'Hash Indisponibilidade 2', type: 'text', required: false },
+
+      // Certidão Municipal
+      { id: 'v104', name: 'numero_certidao_municipal', displayName: 'Nº Certidão Municipal', type: 'text', required: false },
+      { id: 'v105', name: 'data_certidao_municipal', displayName: 'Data Certidão Municipal', type: 'date', required: false },
+      { id: 'v106', name: 'codigo_autenticidade_certidao', displayName: 'Cód. Autenticidade Certidão', type: 'text', required: false },
+      { id: 'v107', name: 'numero_pasta_arquivo', displayName: 'Nº Pasta Arquivo', type: 'text', required: false },
+      { id: 'v108', name: 'numero_ordem_arquivo', displayName: 'Nº Ordem Arquivo', type: 'text', required: false },
     ],
     createdAt: new Date('2024-03-10'),
   },
