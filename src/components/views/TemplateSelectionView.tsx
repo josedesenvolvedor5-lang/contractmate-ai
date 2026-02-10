@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Search, FileText, Clock, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Search, FileText, Clock, ChevronRight, X, CheckCircle2 } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { DocumentPreview } from '@/components/template/DocumentPreview';
 import { getTemplatesByCategory } from '@/data/templates';
 import type { Template, TemplateVariable } from '@/types/document';
 
@@ -19,11 +20,49 @@ export function TemplateSelectionView({
   onBack,
 }: TemplateSelectionViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
   const templates = getTemplatesByCategory(categoryId);
 
   const filteredTemplates = templates.filter((template) =>
     template.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Full preview mode
+  if (previewTemplate) {
+    const emptyVars = previewTemplate.variables.map(v => ({ ...v, value: undefined }));
+    return (
+      <div className="flex flex-col h-[calc(100vh-10rem)]">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setPreviewTemplate(null)}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h2 className="heading-3 text-foreground">{previewTemplate.name}</h2>
+              <p className="text-sm text-muted-foreground">{previewTemplate.variables.length} campos detectados</p>
+            </div>
+          </div>
+          <button
+            onClick={() => onSelectTemplate(previewTemplate)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            Usar este modelo
+          </button>
+        </div>
+
+        <div className="flex-1 min-h-0">
+          <DocumentPreview
+            content={previewTemplate.content}
+            variables={emptyVars as TemplateVariable[]}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -66,7 +105,7 @@ export function TemplateSelectionView({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            onClick={() => onSelectTemplate(template)}
+            onClick={() => setPreviewTemplate(template)}
             className="card-interactive p-5 cursor-pointer group flex items-center justify-between"
           >
             <div className="flex items-start gap-4">
