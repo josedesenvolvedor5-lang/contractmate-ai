@@ -116,7 +116,7 @@ export function TemplateSelectionView({
                 <div>
                   <h3 className="heading-3 text-card-foreground">Editor do Modelo</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Edite o conteúdo HTML do modelo. Use {'{{variavel}}'} para campos dinâmicos.
+                    Edite o texto diretamente. Os campos entre {'{{chaves}}'} serão preenchidos automaticamente.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -124,11 +124,22 @@ export function TemplateSelectionView({
                   Modo edição
                 </div>
               </div>
-              <textarea
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
-                className="flex-1 p-6 bg-background text-foreground font-mono text-sm resize-none focus:outline-none scrollbar-thin"
-                spellCheck={false}
+              <div
+                ref={(el) => {
+                  if (el && !el.dataset.initialized) {
+                    el.innerHTML = editedContent;
+                    el.dataset.initialized = 'true';
+                  }
+                }}
+                contentEditable
+                onInput={(e) => setEditedContent((e.target as HTMLDivElement).innerHTML)}
+                className="flex-1 p-8 overflow-auto scrollbar-thin bg-background text-foreground focus:outline-none prose prose-slate max-w-none"
+                style={{
+                  fontFamily: 'Georgia, serif',
+                  lineHeight: '1.8',
+                  minHeight: '300px',
+                }}
+                suppressContentEditableWarning
               />
             </motion.div>
           ) : (
