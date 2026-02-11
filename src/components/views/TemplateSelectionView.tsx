@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, FileText, Clock, ChevronRight, X, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Search, FileText, Clock, ChevronRight, X, CheckCircle2, Pencil, Eye } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { DocumentPreview } from '@/components/template/DocumentPreview';
 import { getTemplatesByCategory } from '@/data/templates';
@@ -21,11 +21,32 @@ export function TemplateSelectionView({
 }: TemplateSelectionViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
   const templates = getTemplatesByCategory(categoryId);
 
   const filteredTemplates = templates.filter((template) =>
     template.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleStartEdit = useCallback(() => {
+    if (previewTemplate) {
+      setEditedContent(previewTemplate.content);
+      setIsEditing(true);
+    }
+  }, [previewTemplate]);
+
+  const handleSaveEdit = useCallback(() => {
+    if (previewTemplate) {
+      setPreviewTemplate({ ...previewTemplate, content: editedContent });
+      setIsEditing(false);
+    }
+  }, [previewTemplate, editedContent]);
+
+  const handleCancelEdit = useCallback(() => {
+    setIsEditing(false);
+    setEditedContent('');
+  }, []);
 
   // Full preview mode
   if (previewTemplate) {
@@ -35,7 +56,7 @@ export function TemplateSelectionView({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setPreviewTemplate(null)}
+              onClick={() => { setPreviewTemplate(null); setIsEditing(false); }}
               className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -45,20 +66,77 @@ export function TemplateSelectionView({
               <p className="text-sm text-muted-foreground">{previewTemplate.variables.length} campos detectados</p>
             </div>
           </div>
-          <button
-            onClick={() => onSelectTemplate(previewTemplate)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            Usar este modelo
-          </button>
+          <div className="flex items-center gap-3">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleCancelEdit}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Salvar alterações
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleStartEdit}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Editar modelo
+                </button>
+                <button
+                  onClick={() => onSelectTemplate(previewTemplate)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Usar este modelo
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="flex-1 min-h-0">
-          <DocumentPreview
-            content={previewTemplate.content}
-            variables={emptyVars as TemplateVariable[]}
-          />
+          {isEditing ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="h-full flex flex-col card-elevated overflow-hidden"
+            >
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+                <div>
+                  <h3 className="heading-3 text-card-foreground">Editor do Modelo</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Edite o conteúdo HTML do modelo. Use {'{{variavel}}'} para campos dinâmicos.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Pencil className="h-3.5 w-3.5" />
+                  Modo edição
+                </div>
+              </div>
+              <textarea
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                className="flex-1 p-6 bg-background text-foreground font-mono text-sm resize-none focus:outline-none scrollbar-thin"
+                spellCheck={false}
+              />
+            </motion.div>
+          ) : (
+            <DocumentPreview
+              content={previewTemplate.content}
+              variables={emptyVars as TemplateVariable[]}
+            />
+          )}
         </div>
       </div>
     );
