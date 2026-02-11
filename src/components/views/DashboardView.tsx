@@ -7,22 +7,6 @@ import type { DocumentCategory, WorkflowStep } from '@/types/document';
 
 const categories: DocumentCategory[] = [
   {
-    id: 'requerimentos',
-    name: 'Requerimentos',
-    description: 'Pedidos formais para órgãos públicos e privados',
-    icon: 'FileText',
-    requiredDocs: ['Cópia documento', 'Comprovante de Endereço'],
-    templateCount: 8,
-  },
-  {
-    id: 'declaracoes',
-    name: 'Declarações',
-    description: 'Declarações de fé pública e manifestações formais',
-    icon: 'File',
-    requiredDocs: ['Cópia documento', 'Comprovante de Endereço'],
-    templateCount: 12,
-  },
-  {
     id: 'contratos',
     name: 'Contratos',
     description: 'Contratos comerciais e civis entre partes',
