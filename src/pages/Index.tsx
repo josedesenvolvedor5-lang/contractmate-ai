@@ -175,7 +175,7 @@ const Index = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="h-[calc(100vh-10rem)]"
+                className="min-h-[calc(100vh-10rem)]"
               >
                 <ReviewView
                   templateContent={templateContent}
