@@ -77,7 +77,7 @@ export function ReviewView({
   const progress = totalCount > 0 ? (filledCount / totalCount) * 100 : 0;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col">
       <PageHeader
         title="Revisão do Documento"
         subtitle="Confira os dados extraídos e faça ajustes se necessário"
@@ -122,16 +122,16 @@ export function ReviewView({
       ) : (
         <>
           {/* Split View */}
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left: Form */}
-            <div className="flex flex-col min-h-0">
+            <div className="flex flex-col">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-medium text-foreground">Dados Extraídos</h3>
                 <span className="text-xs text-muted-foreground">
                   Clique para editar
                 </span>
               </div>
-              <div className="flex-1 overflow-auto scrollbar-thin pr-2">
+              <div className="overflow-auto scrollbar-thin pr-2 max-h-[calc(100vh-16rem)]">
                 <VariablesList
                   variables={variables}
                   onVariableChange={handleVariableChange}
@@ -142,7 +142,7 @@ export function ReviewView({
             </div>
 
             {/* Right: Preview */}
-            <div className="min-h-0">
+            <div className="min-h-[500px]">
               <DocumentPreview
                 content={templateContent}
                 variables={variables}
