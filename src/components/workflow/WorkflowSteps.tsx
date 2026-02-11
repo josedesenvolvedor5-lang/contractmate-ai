@@ -11,7 +11,6 @@ interface Step {
 
 const steps: Step[] = [
   { id: 'select-template', label: 'Modelo', icon: FileText },
-  { id: 'upload-template', label: 'Upload Template', icon: Upload },
   { id: 'upload-documents', label: 'Documentos', icon: Upload },
   { id: 'review', label: 'Revisão', icon: Eye },
   { id: 'export', label: 'Exportar', icon: Download },
