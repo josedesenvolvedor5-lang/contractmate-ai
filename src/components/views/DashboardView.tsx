@@ -3,16 +3,16 @@ import { motion } from 'framer-motion';
 import { Search, Plus, FileText, Scroll, File, MoreHorizontal } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { CategoryCard } from '@/components/dashboard/CategoryCard';
+import { useTemplates } from '@/hooks/useTemplates';
 import type { DocumentCategory, WorkflowStep } from '@/types/document';
 
-const categories: DocumentCategory[] = [
+const baseCategories: Omit<DocumentCategory, 'templateCount'>[] = [
   {
     id: 'contratos',
     name: 'Contratos',
     description: 'Contratos comerciais e civis entre partes',
     icon: 'Scroll',
     requiredDocs: ['RG/CNH das partes', 'CPF', 'Certidão de Casamento', 'Comprovante de Endereço', 'Matrícula do Imóvel'],
-    templateCount: 1,
   },
 ];
 
@@ -23,8 +23,33 @@ interface DashboardViewProps {
 
 export function DashboardView({ userName = 'Usuário', onStartWorkflow }: DashboardViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const { templates } = useTemplates();
 
-  const filteredCategories = categories.filter((cat) =>
+  // Dynamically compute template counts per category
+  const categories: DocumentCategory[] = baseCategories.map((cat) => ({
+    ...cat,
+    templateCount: templates.filter((t) => t.category === cat.id).length,
+  }));
+
+  // Also add categories that exist in templates but not in baseCategories
+  const existingIds = new Set(baseCategories.map((c) => c.id));
+  const dynamicCategories = templates.reduce((acc, t) => {
+    if (!existingIds.has(t.category) && !acc.find((c) => c.id === t.category)) {
+      acc.push({
+        id: t.category,
+        name: t.category.charAt(0).toUpperCase() + t.category.slice(1),
+        description: `Modelos de ${t.category}`,
+        icon: 'FileText',
+        requiredDocs: [],
+        templateCount: templates.filter((tt) => tt.category === t.category).length,
+      });
+    }
+    return acc;
+  }, [] as DocumentCategory[]);
+
+  const allCategories = [...categories, ...dynamicCategories];
+
+  const filteredCategories = allCategories.filter((cat) =>
     cat.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
