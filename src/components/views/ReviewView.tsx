@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Download, Printer, FileText, RotateCcw, Check } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { VariablesList } from '@/components/template/VariablesList';
 import { DocumentPreview } from '@/components/template/DocumentPreview';
 import type { TemplateVariable, UploadedDocument } from '@/types/document';
+import html2pdf from 'html2pdf.js';
 
 interface ReviewViewProps {
   templateContent: string;
@@ -71,6 +72,47 @@ export function ReviewView({
       prev.map((v) => (v.id === id ? { ...v, value, confidence: 1 } : v))
     );
   }, []);
+
+  const getProcessedHtml = useCallback(() => {
+    let processed = templateContent;
+    variables.forEach((variable) => {
+      const pattern = new RegExp(`\\{\\{${variable.name}\\}\\}|\\[${variable.name}\\]`, 'gi');
+      const value = variable.value || `{{${variable.displayName}}}`;
+      processed = processed.replace(pattern, value);
+    });
+    return `<div style="font-family: Georgia, serif; line-height: 1.8; color: #1a1a1a; padding: 2rem;">${processed}</div>`;
+  }, [templateContent, variables]);
+
+  const handleDownloadPdf = useCallback(() => {
+    const html = getProcessedHtml();
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    html2pdf()
+      .set({
+        margin: [15, 15, 15, 15],
+        filename: 'documento.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      })
+      .from(container)
+      .save();
+  }, [getProcessedHtml]);
+
+  const handleDownloadDocx = useCallback(() => {
+    const html = getProcessedHtml();
+    const docContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8"><style>body { font-family: Georgia, serif; line-height: 1.8; }</style></head>
+      <body>${html}</body></html>`;
+    const blob = new Blob(['\ufeff', docContent], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'documento.doc';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [getProcessedHtml]);
 
   const filledCount = variables.filter((v) => v.value).length;
   const totalCount = variables.length;
@@ -166,25 +208,25 @@ export function ReviewView({
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => onExport('docx')}
+                onClick={handleDownloadDocx}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
               >
                 <FileText className="h-4 w-4" />
-                Word
+                Baixar Word
               </button>
               <button
-                onClick={() => onExport('print')}
+                onClick={() => window.print()}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
               >
                 <Printer className="h-4 w-4" />
                 Imprimir
               </button>
               <button
-                onClick={() => onExport('pdf')}
+                onClick={handleDownloadPdf}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
               >
                 <Download className="h-4 w-4" />
-                Exportar PDF
+                Baixar PDF
               </button>
             </div>
           </motion.div>
