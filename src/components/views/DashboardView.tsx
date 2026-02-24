@@ -9,7 +9,7 @@ import type { DocumentCategory, WorkflowStep } from '@/types/document';
 const baseCategories: Omit<DocumentCategory, 'templateCount'>[] = [
   {
     id: 'contratos',
-    name: 'Contratos',
+    name: 'Escrituras',
     description: 'Contratos comerciais e civis entre partes',
     icon: 'Scroll',
     requiredDocs: ['RG/CNH das partes', 'CPF', 'Certidão de Casamento', 'Comprovante de Endereço', 'Matrícula do Imóvel'],
