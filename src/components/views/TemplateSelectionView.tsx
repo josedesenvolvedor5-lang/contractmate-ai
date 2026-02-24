@@ -40,7 +40,32 @@ export function TemplateSelectionView({
 
   const handleSaveEdit = useCallback(() => {
     if (previewTemplate) {
-      setPreviewTemplate({ ...previewTemplate, content: editedContent });
+      // Re-detect variables from edited content
+      const variableRegex = /\{\{([^}]+)\}\}/g;
+      const existingVarsByName = new Map(previewTemplate.variables.map(v => [v.name.toLowerCase(), v]));
+      const newVars: TemplateVariable[] = [];
+      const seen = new Set<string>();
+      let match;
+      let idx = 0;
+
+      while ((match = variableRegex.exec(editedContent)) !== null) {
+        const varName = match[1].trim();
+        const key = varName.toLowerCase();
+        if (!seen.has(key)) {
+          seen.add(key);
+          idx++;
+          const existing = existingVarsByName.get(key);
+          newVars.push(existing || {
+            id: `v${idx}_${Date.now()}`,
+            name: varName,
+            displayName: varName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+            type: 'text',
+            required: true,
+          });
+        }
+      }
+
+      setPreviewTemplate({ ...previewTemplate, content: editedContent, variables: newVars });
       setIsEditing(false);
     }
   }, [previewTemplate, editedContent]);
