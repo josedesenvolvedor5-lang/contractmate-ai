@@ -91,6 +91,21 @@ export function useTemplates(categoryId?: string) {
     return data;
   }, [fetchTemplates]);
 
+  const updateTemplate = useCallback(async (id: string, content: string, variables: TemplateVariable[]) => {
+    const { error } = await supabase.from('templates').update({
+      content,
+      variables: JSON.parse(JSON.stringify(variables)),
+    }).eq('id', id);
+
+    if (error) {
+      toast.error('Erro ao salvar alterações');
+      return false;
+    }
+    toast.success('Modelo atualizado com sucesso');
+    await fetchTemplates();
+    return true;
+  }, [fetchTemplates]);
+
   const deleteTemplate = useCallback(async (id: string) => {
     const { error } = await supabase.from('templates').delete().eq('id', id);
     if (error) {
@@ -101,5 +116,5 @@ export function useTemplates(categoryId?: string) {
     await fetchTemplates();
   }, [fetchTemplates]);
 
-  return { templates, loading, addTemplate, deleteTemplate, refetch: fetchTemplates };
+  return { templates, loading, addTemplate, updateTemplate, deleteTemplate, refetch: fetchTemplates };
 }

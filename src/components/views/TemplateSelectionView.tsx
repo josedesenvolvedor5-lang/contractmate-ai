@@ -25,7 +25,7 @@ export function TemplateSelectionView({
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const { templates, loading, addTemplate, deleteTemplate } = useTemplates(categoryId);
+  const { templates, loading, addTemplate, updateTemplate, deleteTemplate } = useTemplates(categoryId);
 
   const filteredTemplates = templates.filter((template) =>
     template.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -38,9 +38,8 @@ export function TemplateSelectionView({
     }
   }, [previewTemplate]);
 
-  const handleSaveEdit = useCallback(() => {
+  const handleSaveEdit = useCallback(async () => {
     if (previewTemplate) {
-      // Re-detect variables from edited content
       const variableRegex = /\{\{([^}]+)\}\}/g;
       const existingVarsByName = new Map(previewTemplate.variables.map(v => [v.name.toLowerCase(), v]));
       const newVars: TemplateVariable[] = [];
@@ -65,10 +64,13 @@ export function TemplateSelectionView({
         }
       }
 
-      setPreviewTemplate({ ...previewTemplate, content: editedContent, variables: newVars });
-      setIsEditing(false);
+      const saved = await updateTemplate(previewTemplate.id, editedContent, newVars);
+      if (saved) {
+        setPreviewTemplate({ ...previewTemplate, content: editedContent, variables: newVars });
+        setIsEditing(false);
+      }
     }
-  }, [previewTemplate, editedContent]);
+  }, [previewTemplate, editedContent, updateTemplate]);
 
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
