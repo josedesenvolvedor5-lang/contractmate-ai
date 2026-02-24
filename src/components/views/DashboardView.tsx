@@ -100,11 +100,16 @@ export function DashboardView({ userName = 'Usuário', onStartWorkflow }: Dashbo
       </motion.div>
 
       {/* Category Cards */}
-      
-
-
-
-
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {filteredCategories.map((category, index) => (
+          <CategoryCard
+            key={category.id}
+            category={category}
+            index={index}
+            onClick={() => onStartWorkflow('select-template', category.id, category.name)}
+          />
+        ))}
+      </div>
 
 
 
