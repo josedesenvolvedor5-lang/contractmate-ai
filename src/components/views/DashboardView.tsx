@@ -14,6 +14,20 @@ const baseCategories: Omit<DocumentCategory, 'templateCount'>[] = [
     icon: 'Scroll',
     requiredDocs: ['RG/CNH das partes', 'CPF', 'Certidão de Casamento', 'Comprovante de Endereço', 'Matrícula do Imóvel'],
   },
+  {
+    id: 'procuracoes',
+    name: 'Procuração',
+    description: 'Procurações e instrumentos de mandato',
+    icon: 'File',
+    requiredDocs: ['Cópia RG/CNH', 'Comprovante de Endereço', 'Certidão de Estado Civil'],
+  },
+  {
+    id: 'diversos',
+    name: 'Diversos',
+    description: 'Uso Futuro',
+    icon: 'MoreHorizontal',
+    requiredDocs: ['Cópia documento das partes', 'Comprovante de Endereço'],
+  },
 ];
 
 interface DashboardViewProps {
