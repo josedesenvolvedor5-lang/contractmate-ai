@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { VariablesList } from '@/components/template/VariablesList';
 import { DocumentPreview } from '@/components/template/DocumentPreview';
 import type { TemplateVariable, UploadedDocument } from '@/types/document';
+import { supabase } from '@/integrations/supabase/client';
 import html2pdf from 'html2pdf.js';
 
 interface ReviewViewProps {
@@ -15,34 +16,12 @@ interface ReviewViewProps {
   onBack: () => void;
 }
 
-// Simulated AI extraction - in real app this would call the AI API
-const simulateAIExtraction = (variables: TemplateVariable[]): TemplateVariable[] => {
-  const mockData: Record<string, { value: string; confidence: number; source: string }> = {
-    nome: { value: 'João da Silva Santos', confidence: 0.95, source: 'RG' },
-    nome_comprador: { value: 'Maria Oliveira', confidence: 0.92, source: 'RG' },
-    cpf: { value: '123.456.789-00', confidence: 0.98, source: 'RG' },
-    cpf_comprador: { value: '987.654.321-00', confidence: 0.97, source: 'CNH' },
-    rg: { value: '12.345.678-9', confidence: 0.94, source: 'RG' },
-    endereco: { value: 'Rua das Flores, 123, Centro', confidence: 0.88, source: 'Comprovante' },
-    cidade: { value: 'São Paulo', confidence: 0.96, source: 'Comprovante' },
-    estado: { value: 'SP', confidence: 0.99, source: 'Comprovante' },
-    data_nascimento: { value: '15/03/1985', confidence: 0.91, source: 'RG' },
-    nacionalidade: { value: 'Brasileira', confidence: 0.93, source: 'RG' },
-    estado_civil: { value: 'Solteiro(a)', confidence: 0.65, source: 'RG' },
-    profissao: { value: '', confidence: 0, source: '' },
-  };
-
-  return variables.map((v) => {
-    const data = mockData[v.name];
-    if (data) {
-      return {
-        ...v,
-        value: data.value,
-        confidence: data.confidence,
-        source: data.source,
-      };
-    }
-    return v;
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
 };
 
@@ -56,16 +35,61 @@ export function ReviewView({
   const [variables, setVariables] = useState<TemplateVariable[]>(initialVariables);
   const [selectedVariableId, setSelectedVariableId] = useState<string | undefined>();
   const [isProcessing, setIsProcessing] = useState(true);
+  const [processingError, setProcessingError] = useState<string | null>(null);
 
-  // Simulate AI processing
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const extracted = simulateAIExtraction(initialVariables);
-      setVariables(extracted);
-      setIsProcessing(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [initialVariables]);
+    const extractWithAI = async () => {
+      try {
+        // Convert document files to base64
+        const images = await Promise.all(
+          documents
+            .filter(doc => doc.file.type.startsWith('image/'))
+            .map(doc => fileToBase64(doc.file))
+        );
+
+        if (images.length === 0) {
+          // No images, keep variables empty
+          setIsProcessing(false);
+          return;
+        }
+
+        const variablesPayload = initialVariables.map(v => ({
+          name: v.name,
+          displayName: v.displayName,
+        }));
+
+        const { data, error } = await supabase.functions.invoke('extract-document-data', {
+          body: { variables: variablesPayload, images },
+        });
+
+        if (error) {
+          console.error('Extraction error:', error);
+          setProcessingError('Erro ao processar documentos. Preencha manualmente.');
+          setIsProcessing(false);
+          return;
+        }
+
+        const results: Array<{ name: string; value: string; confidence: number }> = data?.results || [];
+
+        const updated = initialVariables.map(v => {
+          const match = results.find(r => r.name.toLowerCase() === v.name.toLowerCase());
+          if (match && match.value) {
+            return { ...v, value: match.value, confidence: match.confidence, source: 'IA' };
+          }
+          return v;
+        });
+
+        setVariables(updated);
+      } catch (err) {
+        console.error('Extraction failed:', err);
+        setProcessingError('Erro ao processar documentos. Preencha manualmente.');
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    extractWithAI();
+  }, [initialVariables, documents]);
 
   const handleVariableChange = useCallback((id: string, value: string) => {
     setVariables((prev) =>
@@ -163,6 +187,16 @@ export function ReviewView({
         </motion.div>
       ) : (
         <>
+          {processingError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm"
+            >
+              {processingError}
+            </motion.div>
+          )}
+
           {/* Split View */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left: Form */}
