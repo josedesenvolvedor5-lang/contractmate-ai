@@ -1,4 +1,6 @@
-import { FileText, FolderOpen, Upload, Settings, HelpCircle, Home } from 'lucide-react';
+import { FileText, FolderOpen, Upload, Settings, HelpCircle, Home, LogOut } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -19,6 +21,7 @@ const bottomItems = [
 ];
 
 export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
+  const { user, signOut } = useAuth();
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border">
       <div className="flex h-full flex-col">
@@ -79,12 +82,23 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         <div className="border-t border-sidebar-border p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-              <span className="text-sm font-medium text-muted-foreground">U</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                {user?.email?.charAt(0).toUpperCase() || 'U'}
+              </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">Usuário</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {user?.email || 'Usuário'}
+              </p>
               <p className="text-xs text-muted-foreground truncate">Advogado</p>
             </div>
+            <button
+              onClick={signOut}
+              title="Sair"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
