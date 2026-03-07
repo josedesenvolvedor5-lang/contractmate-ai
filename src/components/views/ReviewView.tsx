@@ -40,26 +40,30 @@ export function ReviewView({
   useEffect(() => {
     const extractWithAI = async () => {
       try {
-        // Convert document files to base64
-        const images = await Promise.all(
-          documents
-            .filter(doc => doc.file.type.startsWith('image/'))
-            .map(doc => fileToBase64(doc.file))
+        // Convert document files to base64 (images and PDFs)
+        const supportedDocs = documents.filter(
+          doc => doc.file.type.startsWith('image/') || doc.file.type === 'application/pdf'
         );
 
-        if (images.length === 0) {
-          // No images, keep variables empty
+        if (supportedDocs.length === 0) {
           setIsProcessing(false);
           return;
         }
+
+        const base64Files = await Promise.all(
+          supportedDocs.map(doc => fileToBase64(doc.file))
+        );
 
         const variablesPayload = initialVariables.map(v => ({
           name: v.name,
           displayName: v.displayName,
         }));
 
+        const images = base64Files.filter(b => !b.startsWith('data:application/pdf'));
+        const pdfs = base64Files.filter(b => b.startsWith('data:application/pdf'));
+
         const { data, error } = await supabase.functions.invoke('extract-document-data', {
-          body: { variables: variablesPayload, images },
+          body: { variables: variablesPayload, images, pdfs },
         });
 
         if (error) {

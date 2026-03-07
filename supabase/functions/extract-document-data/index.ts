@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { variables, images } = await req.json();
+    const { variables, images = [], pdfs = [] } = await req.json();
 
     if (!variables || !Array.isArray(variables) || variables.length === 0) {
       return new Response(JSON.stringify({ error: "Variables array is required" }), {
@@ -21,8 +21,8 @@ serve(async (req) => {
       });
     }
 
-    if (!images || !Array.isArray(images) || images.length === 0) {
-      return new Response(JSON.stringify({ error: "At least one image is required" }), {
+    if (images.length === 0 && pdfs.length === 0) {
+      return new Response(JSON.stringify({ error: "At least one image or PDF is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -56,6 +56,18 @@ INSTRUÇÕES:
       image_url: { url: base64 },
     }));
 
+    const pdfContents = pdfs.map((base64: string) => {
+      // Extract the raw base64 data (remove data:application/pdf;base64, prefix)
+      const rawBase64 = base64.replace(/^data:application\/pdf;base64,/, "");
+      return {
+        type: "file" as const,
+        file: {
+          filename: "document.pdf",
+          file_data: rawBase64,
+        },
+      };
+    });
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -70,6 +82,7 @@ INSTRUÇÕES:
             content: [
               { type: "text", text: prompt },
               ...imageContents,
+              ...pdfContents,
             ],
           },
         ],
