@@ -1,7 +1,6 @@
 import { FileText, FolderOpen, Upload, Settings, HelpCircle, Home, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   currentPage: string;
