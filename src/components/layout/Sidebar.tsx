@@ -7,6 +7,8 @@ import { motion } from 'framer-motion';
 interface SidebarProps {
   currentPage: string;
   onNavigate: (page: string) => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 const navItems = [
@@ -21,9 +23,8 @@ const bottomItems = [
   { id: 'help', label: 'Ajuda', icon: HelpCircle },
 ];
 
-export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
+export function Sidebar({ currentPage, onNavigate, collapsed, onToggleCollapse }: SidebarProps) {
   const { user, signOut } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <motion.aside
@@ -50,7 +51,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         {/* Collapse toggle */}
         <div className="px-3 py-2">
           <button
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={onToggleCollapse}
             className="flex w-full items-center justify-center gap-2 rounded-lg px-2 py-2 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
             title={collapsed ? 'Expandir menu' : 'Recolher menu'}
           >
