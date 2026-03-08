@@ -49,15 +49,16 @@ const PARTY_COLORS = [
 ];
 
 /**
- * Detects the party prefix from a variable name.
- * Returns the prefix key (lowercase) or null if no party detected.
+ * Detects the party identifier from a variable name.
+ * Checks both prefix (comprador_nome) and suffix (nome_comprador) patterns.
+ * Returns the party key (lowercase) or null if no party detected.
  */
 export function detectPartyPrefix(varName: string): string | null {
   const lower = varName.toLowerCase();
   // Sort by length descending so "conjuge_comprador" matches before "comprador"
   const sorted = Object.keys(PARTY_PREFIXES).sort((a, b) => b.length - a.length);
   for (const prefix of sorted) {
-    if (lower.startsWith(prefix + '_')) {
+    if (lower.startsWith(prefix + '_') || lower.endsWith('_' + prefix)) {
       return prefix;
     }
   }
@@ -65,11 +66,19 @@ export function detectPartyPrefix(varName: string): string | null {
 }
 
 /**
- * Gets the display name for a variable, stripping the party prefix.
+ * Gets the display name for a variable, stripping the party prefix or suffix.
  */
 export function getDisplayNameWithoutParty(varName: string, partyPrefix: string): string {
-  const withoutPrefix = varName.slice(partyPrefix.length + 1); // +1 for the underscore
-  return withoutPrefix.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const lower = varName.toLowerCase();
+  let withoutParty: string;
+  if (lower.startsWith(partyPrefix + '_')) {
+    withoutParty = varName.slice(partyPrefix.length + 1);
+  } else if (lower.endsWith('_' + partyPrefix)) {
+    withoutParty = varName.slice(0, varName.length - partyPrefix.length - 1);
+  } else {
+    withoutParty = varName;
+  }
+  return withoutParty.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**
