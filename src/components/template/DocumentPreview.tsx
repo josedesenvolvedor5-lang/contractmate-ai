@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { TemplateVariable } from '@/types/document';
+import { replaceVariables } from '@/lib/template-utils';
 
 interface DocumentPreviewProps {
   content: string;
@@ -10,17 +11,7 @@ interface DocumentPreviewProps {
 
 export function DocumentPreview({ content, variables, selectedVariableId }: DocumentPreviewProps) {
   const processedContent = useMemo(() => {
-    let processed = content;
-    
-    variables.forEach((variable) => {
-      const pattern = new RegExp(`\\{\\{${variable.name}\\}\\}|\\[${variable.name}\\]`, 'gi');
-      const replacement = variable.value 
-        ? `<span class="filled-variable" data-id="${variable.id}">${variable.value}</span>`
-        : `<span class="empty-variable" data-id="${variable.id}">{{${variable.displayName}}}</span>`;
-      processed = processed.replace(pattern, replacement);
-    });
-
-    return processed;
+    return replaceVariables(content, variables, 'preview');
   }, [content, variables]);
 
   return (
