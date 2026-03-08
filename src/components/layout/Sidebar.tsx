@@ -1,5 +1,4 @@
 import { FileText, FolderOpen, Upload, Settings, HelpCircle, Home, LogOut, PanelLeftClose, PanelLeft } from 'lucide-react';
-import { FileText, FolderOpen, Upload, Settings, HelpCircle, Home, LogOut, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
