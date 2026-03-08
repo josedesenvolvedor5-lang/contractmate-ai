@@ -87,6 +87,7 @@ export function useTemplates(categoryId?: string) {
         content,
         category,
         variables: JSON.parse(JSON.stringify(detectedVars)),
+        user_id: userId,
       }]).select().single();
 
       if (error) throw error;
