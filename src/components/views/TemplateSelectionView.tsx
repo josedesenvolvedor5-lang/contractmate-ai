@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, FileText, Clock, ChevronRight, X, CheckCircle2, Pencil, Eye, Plus, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { DocumentPreview } from '@/components/template/DocumentPreview';
 import { AddTemplateDialog } from '@/components/template/AddTemplateDialog';
+import { FormattingToolbar } from '@/components/template/FormattingToolbar';
 import { useTemplates } from '@/hooks/useTemplates';
 import type { Template, TemplateVariable } from '@/types/document';
 
