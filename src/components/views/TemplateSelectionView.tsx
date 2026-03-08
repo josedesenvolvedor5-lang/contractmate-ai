@@ -26,6 +26,7 @@ export function TemplateSelectionView({
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const editEditorRef = useRef<HTMLDivElement>(null);
   const { templates, loading, addTemplate, updateTemplate, deleteTemplate } = useTemplates(categoryId);
 
   const filteredTemplates = templates.filter((template) =>
