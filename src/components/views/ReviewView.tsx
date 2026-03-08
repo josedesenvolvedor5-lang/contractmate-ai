@@ -81,28 +81,26 @@ export function ReviewView({
         const allResults: Array<{ name: string; value: string; confidence: number }> = [];
 
         if (parties.length > 0) {
-          // Extract per party
+          // Extract per party for better accuracy
           const extractionPromises = [...new Set([...docsByParty.keys(), ...varsByParty.keys()])].map(async (partyKey) => {
             const partyDocs = docsByParty.get(partyKey) || docsByParty.get('general') || [];
             const partyVars = varsByParty.get(partyKey) || [];
-            // Also include general docs for each party
             const generalDocs = partyKey !== 'general' ? (docsByParty.get('general') || []) : [];
             const allPartyDocs = [...partyDocs, ...generalDocs];
 
             if (partyVars.length === 0 || allPartyDocs.length === 0) return;
 
             const base64Files = await Promise.all(allPartyDocs.map(doc => fileToBase64(doc.file)));
-            const images = base64Files.filter(b => !b.startsWith('data:application/pdf'));
-            const pdfs = base64Files.filter(b => b.startsWith('data:application/pdf'));
 
             const party = parties.find(p => p.id === partyKey);
-            const partyContext = party ? `Estes documentos pertencem ao "${party.label}". ` : '';
+            const partyContext = party
+              ? `Estes documentos pertencem ao "${party.label}". Extraia APENAS os dados desta pessoa/parte dos documentos.`
+              : '';
 
             const { data, error } = await supabase.functions.invoke('extract-document-data', {
               body: {
                 variables: partyVars.map(v => ({ name: v.name, displayName: v.displayName })),
-                images,
-                pdfs,
+                files: base64Files,
                 partyContext,
               },
             });
@@ -116,14 +114,11 @@ export function ReviewView({
         } else {
           // No parties - extract all at once
           const base64Files = await Promise.all(supportedDocs.map(doc => fileToBase64(doc.file)));
-          const images = base64Files.filter(b => !b.startsWith('data:application/pdf'));
-          const pdfs = base64Files.filter(b => b.startsWith('data:application/pdf'));
 
           const { data, error } = await supabase.functions.invoke('extract-document-data', {
             body: {
               variables: partyVariables.map(v => ({ name: v.name, displayName: v.displayName })),
-              images,
-              pdfs,
+              files: base64Files,
             },
           });
 
