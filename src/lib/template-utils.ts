@@ -49,15 +49,16 @@ const PARTY_COLORS = [
 ];
 
 /**
- * Detects the party prefix from a variable name.
- * Returns the prefix key (lowercase) or null if no party detected.
+ * Detects the party identifier from a variable name.
+ * Checks both prefix (comprador_nome) and suffix (nome_comprador) patterns.
+ * Returns the party key (lowercase) or null if no party detected.
  */
 export function detectPartyPrefix(varName: string): string | null {
   const lower = varName.toLowerCase();
   // Sort by length descending so "conjuge_comprador" matches before "comprador"
   const sorted = Object.keys(PARTY_PREFIXES).sort((a, b) => b.length - a.length);
   for (const prefix of sorted) {
-    if (lower.startsWith(prefix + '_')) {
+    if (lower.startsWith(prefix + '_') || lower.endsWith('_' + prefix)) {
       return prefix;
     }
   }
