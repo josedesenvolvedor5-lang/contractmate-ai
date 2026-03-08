@@ -79,102 +79,123 @@ export function TemplateSelectionView({
     setEditedContent('');
   }, []);
 
-  // Full preview mode
+  // Full preview/edit mode — fullscreen when editing
   if (previewTemplate) {
     const emptyVars = previewTemplate.variables.map(v => ({ ...v, value: undefined }));
+
+    if (isEditing) {
+      return (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 flex flex-col bg-card"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border shrink-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={handleCancelEdit}
+                className="p-2 rounded-lg hover:bg-secondary transition-colors shrink-0"
+              >
+                <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+              </button>
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-lg font-semibold text-card-foreground truncate">{previewTemplate.name}</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                  Edite o texto. Campos entre {'{{chaves}}'} serão preenchidos automaticamente.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground mr-2">
+                <Pencil className="h-3.5 w-3.5" />
+                Modo edição
+              </div>
+              <button
+                onClick={handleCancelEdit}
+                className="px-3 sm:px-4 py-2 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors text-sm"
+              >
+                <span className="hidden sm:inline">Cancelar</span>
+                <X className="h-4 w-4 sm:hidden" />
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="flex items-center gap-2 px-3 sm:px-5 py-2 rounded-lg bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity text-sm"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Salvar alterações</span>
+                <span className="sm:hidden">Salvar</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Formatting toolbar */}
+          <FormattingToolbar editorRef={editEditorRef} />
+
+          {/* Editor */}
+          <div className="flex-1 overflow-auto min-h-0">
+            <div
+              ref={(el) => {
+                if (el && !el.dataset.initialized) {
+                  el.innerHTML = editedContent;
+                  el.dataset.initialized = 'true';
+                }
+                (editEditorRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+              }}
+              contentEditable
+              onInput={(e) => setEditedContent((e.target as HTMLDivElement).innerHTML)}
+              className="h-full min-h-[200px] p-4 sm:p-8 bg-background text-foreground focus:outline-none prose prose-slate max-w-none"
+              style={{
+                fontFamily: 'Georgia, serif',
+                lineHeight: '1.8',
+              }}
+              suppressContentEditableWarning
+            />
+          </div>
+        </motion.div>
+      );
+    }
+
     return (
       <div className="flex flex-col h-[calc(100vh-10rem)]">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
           <div className="flex items-center gap-4">
             <button
               onClick={() => { setPreviewTemplate(null); setIsEditing(false); }}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <div>
-              <h2 className="heading-3 text-foreground">{previewTemplate.name}</h2>
+            <div className="min-w-0">
+              <h2 className="heading-3 text-foreground truncate">{previewTemplate.name}</h2>
               <p className="text-sm text-muted-foreground">{previewTemplate.variables.length} campos detectados</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancelEdit}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleSaveEdit}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Salvar alterações
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={handleStartEdit}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
-                >
-                  <Pencil className="h-4 w-4" />
-                  Editar modelo
-                </button>
-                <button
-                  onClick={() => onSelectTemplate(previewTemplate)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Usar este modelo
-                </button>
-              </>
-            )}
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <button
+              onClick={handleStartEdit}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors text-sm"
+            >
+              <Pencil className="h-4 w-4" />
+              <span className="hidden sm:inline">Editar modelo</span>
+              <span className="sm:hidden">Editar</span>
+            </button>
+            <button
+              onClick={() => onSelectTemplate(previewTemplate)}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity text-sm"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Usar este modelo</span>
+              <span className="sm:hidden">Usar</span>
+            </button>
           </div>
         </div>
 
         <div className="flex-1 min-h-0">
-          {isEditing ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="h-full flex flex-col card-elevated overflow-hidden"
-            >
-              <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-                <div>
-                  <h3 className="heading-3 text-card-foreground">Editor do Modelo</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Edite o texto diretamente. Os campos entre {'{{chaves}}'} serão preenchidos automaticamente.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Pencil className="h-3.5 w-3.5" />
-                  Modo edição
-                </div>
-              </div>
-              <FormattingToolbar editorRef={editEditorRef} />
-              <div
-                ref={(el) => {
-                  if (el && !el.dataset.initialized) {
-                    el.innerHTML = editedContent;
-                    el.dataset.initialized = 'true';
-                  }
-                  (editEditorRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-                }}
-                contentEditable
-                onInput={(e) => setEditedContent((e.target as HTMLDivElement).innerHTML)}
-                className="flex-1 p-8 overflow-auto scrollbar-thin bg-background text-foreground focus:outline-none prose prose-slate max-w-none"
-                style={{
-                  fontFamily: 'Georgia, serif',
-                  lineHeight: '1.8',
-                  minHeight: '300px',
-                }}
-                suppressContentEditableWarning
-              />
-            </motion.div>
+          <DocumentPreview
+            content={previewTemplate.content}
+            variables={emptyVars as TemplateVariable[]}
+          />
           ) : (
             <DocumentPreview
               content={previewTemplate.content}
