@@ -16,6 +16,14 @@ export interface TemplateVariable {
   value?: string;
   confidence?: number;
   source?: string;
+  /** Party this variable belongs to (e.g., "comprador", "vendedor"). Null = general */
+  party?: string;
+}
+
+export interface Party {
+  id: string;
+  label: string;
+  color: string;
 }
 
 export interface UploadedDocument {
@@ -26,6 +34,8 @@ export interface UploadedDocument {
   preview?: string;
   status: 'pending' | 'processing' | 'extracted' | 'error';
   extractedData?: Record<string, string>;
+  /** Which party this document belongs to */
+  partyId?: string;
 }
 
 export interface DocumentCategory {
