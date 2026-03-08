@@ -155,12 +155,14 @@ export function TemplateSelectionView({
                   Modo edição
                 </div>
               </div>
+              <FormattingToolbar editorRef={editEditorRef} />
               <div
                 ref={(el) => {
                   if (el && !el.dataset.initialized) {
                     el.innerHTML = editedContent;
                     el.dataset.initialized = 'true';
                   }
+                  (editEditorRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
                 }}
                 contentEditable
                 onInput={(e) => setEditedContent((e.target as HTMLDivElement).innerHTML)}
