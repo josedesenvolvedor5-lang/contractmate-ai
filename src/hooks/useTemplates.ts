@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Template, TemplateVariable } from '@/types/document';
 import { contratoTemplates } from '@/data/contractTemplates';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const TEMPLATES_KEY = 'templates';
 
@@ -18,8 +19,11 @@ function mapRow(row: any): Template {
   };
 }
 
-async function fetchTemplatesFromDb(categoryId?: string): Promise<Template[]> {
+async function fetchTemplatesFromDb(categoryId?: string, userId?: string): Promise<Template[]> {
   let query = supabase.from('templates').select('*');
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
   if (categoryId) {
     query = query.eq('category', categoryId);
   }
@@ -63,13 +67,16 @@ function detectVariables(content: string): TemplateVariable[] {
 
 export function useTemplates(categoryId?: string) {
   const queryClient = useQueryClient();
-  const queryKey = categoryId ? [TEMPLATES_KEY, categoryId] : [TEMPLATES_KEY];
+  const { user } = useAuth();
+  const userId = user?.uid;
+  const queryKey = categoryId ? [TEMPLATES_KEY, categoryId, userId] : [TEMPLATES_KEY, userId];
 
   const { data: templates = [], isLoading: loading } = useQuery({
     queryKey,
-    queryFn: () => fetchTemplatesFromDb(categoryId),
-    staleTime: 30_000, // 30s before refetch
-    placeholderData: (prev) => prev, // keep previous data while loading
+    queryFn: () => fetchTemplatesFromDb(categoryId, userId || undefined),
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+    enabled: !!userId,
   });
 
   const addMutation = useMutation({
@@ -80,6 +87,7 @@ export function useTemplates(categoryId?: string) {
         content,
         category,
         variables: JSON.parse(JSON.stringify(detectedVars)),
+        user_id: userId,
       }]).select().single();
 
       if (error) throw error;

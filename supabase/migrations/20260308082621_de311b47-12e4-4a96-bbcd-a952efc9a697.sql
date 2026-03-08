@@ -1,0 +1,1 @@
+ALTER TABLE public.templates ADD COLUMN user_id text;
