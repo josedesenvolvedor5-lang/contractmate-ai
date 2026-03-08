@@ -37,7 +37,7 @@ const PARTY_PREFIXES: Record<string, string> = {
   conjuge_vendedor: 'Cônjuge Vendedor',
 };
 
-const PARTY_COLORS = [
+export const PARTY_COLORS = [
   'hsl(221, 83%, 53%)',   // blue
   'hsl(142, 71%, 45%)',   // green
   'hsl(25, 95%, 53%)',    // orange

@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, Users } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Users, Plus, X, Pencil, Check } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { FileUploadZone } from '@/components/upload/FileUploadZone';
 import type { UploadedDocument, TemplateVariable, Party } from '@/types/document';
-import { detectParties } from '@/lib/template-utils';
+import { detectParties, PARTY_COLORS } from '@/lib/template-utils';
+import { cn } from '@/lib/utils';
 
 interface DocumentUploadViewProps {
   variables: TemplateVariable[];
@@ -13,7 +14,15 @@ interface DocumentUploadViewProps {
 }
 
 export function DocumentUploadView({ variables, onComplete, onBack }: DocumentUploadViewProps) {
-  const { parties } = useMemo(() => detectParties(variables), [variables]);
+  const { parties: detectedParties } = useMemo(() => detectParties(variables), [variables]);
+
+  // Editable parties list — starts with auto-detected ones
+  const [parties, setParties] = useState<Party[]>(detectedParties);
+  const [newPartyName, setNewPartyName] = useState('');
+  const [showAddInput, setShowAddInput] = useState(false);
+  const [editingPartyId, setEditingPartyId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+
   const hasParties = parties.length > 0;
 
   // Files per party + general
@@ -29,9 +38,41 @@ export function DocumentUploadView({ variables, onComplete, onBack }: DocumentUp
 
   const totalFiles = Object.values(filesByParty).reduce((sum, f) => sum + f.length, 0);
 
+  const handleAddParty = useCallback(() => {
+    const name = newPartyName.trim();
+    if (!name) return;
+    const id = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    if (parties.some(p => p.id === id)) return;
+    const color = PARTY_COLORS[(parties.length) % PARTY_COLORS.length];
+    setParties(prev => [...prev, { id, label: name, color }]);
+    setFilesByParty(prev => ({ ...prev, [id]: [] }));
+    setNewPartyName('');
+    setShowAddInput(false);
+  }, [newPartyName, parties]);
+
+  const handleRemoveParty = useCallback((partyId: string) => {
+    setParties(prev => prev.filter(p => p.id !== partyId));
+    setFilesByParty(prev => {
+      const next = { ...prev };
+      // Move files from removed party to general
+      if (next[partyId]?.length) {
+        next.general = [...(next.general || []), ...next[partyId]];
+      }
+      delete next[partyId];
+      return next;
+    });
+  }, []);
+
+  const handleRenameParty = useCallback((partyId: string) => {
+    const name = editingName.trim();
+    if (!name) return;
+    setParties(prev => prev.map(p => p.id === partyId ? { ...p, label: name } : p));
+    setEditingPartyId(null);
+    setEditingName('');
+  }, [editingName]);
+
   const handleContinue = () => {
     if (totalFiles === 0) return;
-    // Flatten all files and tag with partyId
     const allDocs: UploadedDocument[] = [];
     for (const [partyId, docs] of Object.entries(filesByParty)) {
       docs.forEach(doc => {
@@ -56,20 +97,22 @@ export function DocumentUploadView({ variables, onComplete, onBack }: DocumentUp
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 p-4 rounded-xl bg-secondary border border-border"
+          className="mb-6 p-4 rounded-xl bg-secondary border border-border"
         >
           <p className="text-sm text-muted-foreground mb-2">
             <strong className="text-foreground">Campos a preencher:</strong>
             {hasParties && (
               <span className="ml-2 text-xs text-muted-foreground">
-                ({parties.length} parte{parties.length > 1 ? 's' : ''} detectada{parties.length > 1 ? 's' : ''})
+                ({parties.length} parte{parties.length > 1 ? 's' : ''})
               </span>
             )}
           </p>
           <div className="flex flex-wrap gap-2">
             {variables.map((v) => {
-              const prefix = v.party || v.name.split('_')[0];
-              const party = parties.find(p => p.id === prefix);
+              const party = parties.find(p => 
+                v.name.toLowerCase().startsWith(p.id + '_') || 
+                v.name.toLowerCase().endsWith('_' + p.id)
+              );
               return (
                 <span
                   key={v.id}
@@ -88,6 +131,118 @@ export function DocumentUploadView({ variables, onComplete, onBack }: DocumentUp
           </div>
         </motion.div>
       )}
+
+      {/* Party Management Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6 p-4 rounded-xl bg-card border border-border"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Partes / Lotes de Documentos</h3>
+          </div>
+          {!showAddInput && (
+            <button
+              onClick={() => setShowAddInput(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Adicionar Parte
+            </button>
+          )}
+        </div>
+
+        {/* Existing parties as chips */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          {parties.map(party => (
+            <div
+              key={party.id}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border"
+              style={{
+                borderColor: party.color,
+                color: party.color,
+                backgroundColor: `${party.color}10`,
+              }}
+            >
+              {editingPartyId === party.id ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={e => setEditingName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleRenameParty(party.id)}
+                    className="w-24 bg-transparent border-b outline-none text-xs"
+                    style={{ borderColor: party.color }}
+                    autoFocus
+                  />
+                  <button onClick={() => handleRenameParty(party.id)} className="hover:opacity-70">
+                    <Check className="h-3 w-3" />
+                  </button>
+                  <button onClick={() => setEditingPartyId(null)} className="hover:opacity-70">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <span>{party.label}</span>
+                  <button
+                    onClick={() => { setEditingPartyId(party.id); setEditingName(party.label); }}
+                    className="hover:opacity-70"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button onClick={() => handleRemoveParty(party.id)} className="hover:opacity-70">
+                    <X className="h-3 w-3" />
+                  </button>
+                </>
+              )}
+            </div>
+          ))}
+
+          {parties.length === 0 && !showAddInput && (
+            <p className="text-xs text-muted-foreground">
+              Nenhuma parte detectada. Clique em "Adicionar Parte" para criar lotes separados.
+            </p>
+          )}
+        </div>
+
+        {/* Add new party input */}
+        <AnimatePresence>
+          {showAddInput && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="flex items-center gap-2 mt-2"
+            >
+              <input
+                type="text"
+                value={newPartyName}
+                onChange={e => setNewPartyName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddParty()}
+                placeholder="Nome da parte (ex: Juiz, Réu, Fiador...)"
+                className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                autoFocus
+              />
+              <button
+                onClick={handleAddParty}
+                disabled={!newPartyName.trim()}
+                className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+              >
+                Adicionar
+              </button>
+              <button
+                onClick={() => { setShowAddInput(false); setNewPartyName(''); }}
+                className="p-2 rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Upload zones per party */}
       {hasParties ? (
