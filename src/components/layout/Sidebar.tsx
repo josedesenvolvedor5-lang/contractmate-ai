@@ -38,6 +38,9 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggleCollapse }
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary">
               <Bot className="h-5 w-5 text-primary-foreground" />
             </div>
+            {!collapsed && (
+              <h1 className="font-serif text-xl font-semibold text-sidebar-foreground whitespace-nowrap">DocBot</h1>
+            )}
           </div>
         </div>
 
