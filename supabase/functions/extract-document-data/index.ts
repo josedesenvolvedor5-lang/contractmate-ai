@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { variables, images = [], pdfs = [], partyContext = '' } = await req.json();
+    const { variables, files = [], partyContext = '' } = await req.json();
 
     if (!variables || !Array.isArray(variables) || variables.length === 0) {
       return new Response(JSON.stringify({ error: "Variables array is required" }), {
@@ -21,8 +21,8 @@ serve(async (req) => {
       });
     }
 
-    if (images.length === 0 && pdfs.length === 0) {
-      return new Response(JSON.stringify({ error: "At least one image or PDF is required" }), {
+    if (files.length === 0) {
+      return new Response(JSON.stringify({ error: "At least one file is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -33,16 +33,18 @@ serve(async (req) => {
     ).join("\n");
 
     const prompt = `Você é um especialista em OCR e extração de dados de documentos brasileiros.
-${partyContext ? partyContext + '\n' : ''}Analise as imagens de documentos fornecidas e extraia os seguintes campos:
+${partyContext ? partyContext + '\n' : ''}Analise TODOS os documentos fornecidos (imagens e PDFs) e extraia os seguintes campos:
 
 ${variablesList}
 
 INSTRUÇÕES:
+- Analise CADA documento fornecido, seja imagem ou PDF
 - Extraia APENAS os campos listados acima
-- Se um campo não for encontrado, retorne string vazia
+- Se um campo não for encontrado em nenhum documento, retorne string vazia
 - Para CPF, mantenha a formatação XXX.XXX.XXX-XX
 - Para RG, mantenha a formatação original
 - Para datas, use o formato DD/MM/AAAA
+- Para endereços, inclua o endereço completo
 - Retorne APENAS um JSON válido no formato:
 {
   "results": [
@@ -51,15 +53,13 @@ INSTRUÇÕES:
 }
 - confidence deve ser um número entre 0 e 1 indicando sua certeza`;
 
-    const imageContents = images.map((base64: string) => ({
+    // Build content parts - all files as image_url (Gemini handles both images and PDFs this way)
+    const fileParts = files.map((base64: string) => ({
       type: "image_url" as const,
       image_url: { url: base64 },
     }));
 
-    const pdfContents = pdfs.map((base64: string) => ({
-      type: "image_url" as const,
-      image_url: { url: base64 },
-    }));
+    console.log(`Processing ${files.length} file(s) for ${variables.length} variable(s). Party context: ${partyContext || 'none'}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -74,8 +74,7 @@ INSTRUÇÕES:
             role: "user",
             content: [
               { type: "text", text: prompt },
-              ...imageContents,
-              ...pdfContents,
+              ...fileParts,
             ],
           },
         ],
@@ -86,7 +85,7 @@ INSTRUÇÕES:
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI Gateway error:", errorText);
-      return new Response(JSON.stringify({ error: "AI processing failed" }), {
+      return new Response(JSON.stringify({ error: "AI processing failed", details: errorText }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -106,6 +105,7 @@ INSTRUÇÕES:
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
+    console.log(`Extracted ${parsed.results?.length || 0} fields successfully`);
 
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
