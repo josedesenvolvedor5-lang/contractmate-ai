@@ -67,13 +67,16 @@ function detectVariables(content: string): TemplateVariable[] {
 
 export function useTemplates(categoryId?: string) {
   const queryClient = useQueryClient();
-  const queryKey = categoryId ? [TEMPLATES_KEY, categoryId] : [TEMPLATES_KEY];
+  const { user } = useAuth();
+  const userId = user?.uid;
+  const queryKey = categoryId ? [TEMPLATES_KEY, categoryId, userId] : [TEMPLATES_KEY, userId];
 
   const { data: templates = [], isLoading: loading } = useQuery({
     queryKey,
-    queryFn: () => fetchTemplatesFromDb(categoryId),
-    staleTime: 30_000, // 30s before refetch
-    placeholderData: (prev) => prev, // keep previous data while loading
+    queryFn: () => fetchTemplatesFromDb(categoryId, userId || undefined),
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+    enabled: !!userId,
   });
 
   const addMutation = useMutation({
