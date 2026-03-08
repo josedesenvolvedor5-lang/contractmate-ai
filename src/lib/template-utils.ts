@@ -66,11 +66,19 @@ export function detectPartyPrefix(varName: string): string | null {
 }
 
 /**
- * Gets the display name for a variable, stripping the party prefix.
+ * Gets the display name for a variable, stripping the party prefix or suffix.
  */
 export function getDisplayNameWithoutParty(varName: string, partyPrefix: string): string {
-  const withoutPrefix = varName.slice(partyPrefix.length + 1); // +1 for the underscore
-  return withoutPrefix.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const lower = varName.toLowerCase();
+  let withoutParty: string;
+  if (lower.startsWith(partyPrefix + '_')) {
+    withoutParty = varName.slice(partyPrefix.length + 1);
+  } else if (lower.endsWith('_' + partyPrefix)) {
+    withoutParty = varName.slice(0, varName.length - partyPrefix.length - 1);
+  } else {
+    withoutParty = varName;
+  }
+  return withoutParty.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**
