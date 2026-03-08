@@ -19,8 +19,11 @@ function mapRow(row: any): Template {
   };
 }
 
-async function fetchTemplatesFromDb(categoryId?: string): Promise<Template[]> {
+async function fetchTemplatesFromDb(categoryId?: string, userId?: string): Promise<Template[]> {
   let query = supabase.from('templates').select('*');
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
   if (categoryId) {
     query = query.eq('category', categoryId);
   }
