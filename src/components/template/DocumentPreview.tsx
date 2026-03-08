@@ -1,18 +1,29 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import type { TemplateVariable } from '@/types/document';
 import { replaceVariables } from '@/lib/template-utils';
+import { FormattingToolbar } from './FormattingToolbar';
 
 interface DocumentPreviewProps {
   content: string;
   variables: TemplateVariable[];
   selectedVariableId?: string;
+  editable?: boolean;
+  onContentChange?: (html: string) => void;
 }
 
-export function DocumentPreview({ content, variables, selectedVariableId }: DocumentPreviewProps) {
+export function DocumentPreview({ content, variables, selectedVariableId, editable = false, onContentChange }: DocumentPreviewProps) {
+  const editorRef = useRef<HTMLDivElement>(null);
+
   const processedContent = useMemo(() => {
     return replaceVariables(content, variables, 'preview');
   }, [content, variables]);
+
+  const handleInput = useCallback(() => {
+    if (editorRef.current && onContentChange) {
+      onContentChange(editorRef.current.innerHTML);
+    }
+  }, [onContentChange]);
 
   return (
     <motion.div
@@ -23,9 +34,11 @@ export function DocumentPreview({ content, variables, selectedVariableId }: Docu
       <div className="px-6 py-4 border-b border-border">
         <h3 className="heading-3 text-card-foreground">Pré-visualização do Documento</h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Os campos preenchidos aparecem em destaque
+          {editable ? 'Edite o texto diretamente no documento' : 'Os campos preenchidos aparecem em destaque'}
         </p>
       </div>
+
+      {editable && <FormattingToolbar editorRef={editorRef} />}
 
       <div 
         className="flex-1 p-8 overflow-auto scrollbar-thin bg-background"
@@ -34,10 +47,21 @@ export function DocumentPreview({ content, variables, selectedVariableId }: Docu
           lineHeight: '1.8',
         }}
       >
-        <div 
-          className="max-w-none prose prose-slate"
-          dangerouslySetInnerHTML={{ __html: processedContent }}
-        />
+        {editable ? (
+          <div
+            ref={editorRef}
+            contentEditable
+            suppressContentEditableWarning
+            onInput={handleInput}
+            className="max-w-none prose prose-slate outline-none min-h-[300px]"
+            dangerouslySetInnerHTML={{ __html: processedContent }}
+          />
+        ) : (
+          <div 
+            className="max-w-none prose prose-slate"
+            dangerouslySetInnerHTML={{ __html: processedContent }}
+          />
+        )}
       </div>
 
       <style>{`
@@ -71,6 +95,15 @@ export function DocumentPreview({ content, variables, selectedVariableId }: Docu
           color: hsl(var(--foreground));
           margin-top: 1.5rem;
           margin-bottom: 0.75rem;
+        }
+
+        [contenteditable]:focus {
+          outline: none;
+        }
+
+        [contenteditable] .filled-variable,
+        [contenteditable] .empty-variable {
+          cursor: text;
         }
       `}</style>
     </motion.div>
