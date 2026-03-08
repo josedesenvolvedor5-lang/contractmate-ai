@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback } from 'react';
+import { useMemo, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { TemplateVariable } from '@/types/document';
 import { replaceVariables } from '@/lib/template-utils';
@@ -14,10 +14,22 @@ interface DocumentPreviewProps {
 
 export function DocumentPreview({ content, variables, selectedVariableId, editable = false, onContentChange }: DocumentPreviewProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const initializedRef = useRef(false);
 
   const processedContent = useMemo(() => {
     return replaceVariables(content, variables, 'preview');
   }, [content, variables]);
+
+  // In editable mode, only set innerHTML once on mount or when switching to editable
+  useEffect(() => {
+    if (editable && editorRef.current && !initializedRef.current) {
+      editorRef.current.innerHTML = processedContent;
+      initializedRef.current = true;
+    }
+    if (!editable) {
+      initializedRef.current = false;
+    }
+  }, [editable, processedContent]);
 
   const handleInput = useCallback(() => {
     if (editorRef.current && onContentChange) {
@@ -54,7 +66,6 @@ export function DocumentPreview({ content, variables, selectedVariableId, editab
             suppressContentEditableWarning
             onInput={handleInput}
             className="max-w-none prose prose-slate outline-none min-h-[300px]"
-            dangerouslySetInnerHTML={{ __html: processedContent }}
           />
         ) : (
           <div 
