@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, FileText, Clock, ChevronRight, X, CheckCircle2, Pencil, Eye, Plus, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { DocumentPreview } from '@/components/template/DocumentPreview';
 import { AddTemplateDialog } from '@/components/template/AddTemplateDialog';
+import { FormattingToolbar } from '@/components/template/FormattingToolbar';
 import { useTemplates } from '@/hooks/useTemplates';
 import type { Template, TemplateVariable } from '@/types/document';
 
@@ -25,6 +26,7 @@ export function TemplateSelectionView({
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const editEditorRef = useRef<HTMLDivElement>(null);
   const { templates, loading, addTemplate, updateTemplate, deleteTemplate } = useTemplates(categoryId);
 
   const filteredTemplates = templates.filter((template) =>
@@ -153,12 +155,14 @@ export function TemplateSelectionView({
                   Modo edição
                 </div>
               </div>
+              <FormattingToolbar editorRef={editEditorRef} />
               <div
                 ref={(el) => {
                   if (el && !el.dataset.initialized) {
                     el.innerHTML = editedContent;
                     el.dataset.initialized = 'true';
                   }
+                  (editEditorRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
                 }}
                 contentEditable
                 onInput={(e) => setEditedContent((e.target as HTMLDivElement).innerHTML)}

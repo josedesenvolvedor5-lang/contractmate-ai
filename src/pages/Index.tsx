@@ -94,7 +94,7 @@ const Index = () => {
     <div className="flex min-h-screen bg-background">
       <Sidebar currentPage={currentPage} onNavigate={handleNavigate} />
       
-      <main className="flex-1 ml-64">
+      <main className="flex-1 ml-16 sm:ml-64 transition-all duration-200">
         {/* Workflow Steps Header */}
         {isWorkflow && (
           <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border px-8 py-4">
