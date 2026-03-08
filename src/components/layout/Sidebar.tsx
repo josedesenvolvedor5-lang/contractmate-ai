@@ -1,4 +1,4 @@
-import { FileText, FolderOpen, Upload, Settings, HelpCircle, Home, LogOut, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { FileText, FolderOpen, Upload, Settings, HelpCircle, Home, LogOut, PanelLeftClose, PanelLeft, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
@@ -36,14 +36,8 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggleCollapse }
         <div className="flex h-20 items-center justify-between px-4 border-b border-sidebar-border">
           <div className={cn("flex items-center gap-3", collapsed && "justify-center w-full")}>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary">
-              <FileText className="h-5 w-5 text-primary-foreground" />
+              <Bot className="h-5 w-5 text-primary-foreground" />
             </div>
-            {!collapsed && (
-              <div>
-                <h1 className="font-serif text-xl font-semibold text-sidebar-foreground whitespace-nowrap">DocuFill</h1>
-                <span className="text-xs text-muted-foreground">AI Automation</span>
-              </div>
-            )}
           </div>
         </div>
 
