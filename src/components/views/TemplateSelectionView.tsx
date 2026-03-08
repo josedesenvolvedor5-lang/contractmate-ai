@@ -196,12 +196,6 @@ export function TemplateSelectionView({
             content={previewTemplate.content}
             variables={emptyVars as TemplateVariable[]}
           />
-          ) : (
-            <DocumentPreview
-              content={previewTemplate.content}
-              variables={emptyVars as TemplateVariable[]}
-            />
-          )}
         </div>
       </div>
     );
