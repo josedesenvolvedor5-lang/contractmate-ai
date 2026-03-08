@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { variables, images = [], pdfs = [] } = await req.json();
+    const { variables, images = [], pdfs = [], partyContext = '' } = await req.json();
 
     if (!variables || !Array.isArray(variables) || variables.length === 0) {
       return new Response(JSON.stringify({ error: "Variables array is required" }), {
@@ -33,7 +33,7 @@ serve(async (req) => {
     ).join("\n");
 
     const prompt = `Você é um especialista em OCR e extração de dados de documentos brasileiros.
-Analise as imagens de documentos fornecidas e extraia os seguintes campos:
+${partyContext ? partyContext + '\n' : ''}Analise as imagens de documentos fornecidas e extraia os seguintes campos:
 
 ${variablesList}
 
