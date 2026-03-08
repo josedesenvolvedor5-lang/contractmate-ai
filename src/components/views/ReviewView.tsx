@@ -1,11 +1,13 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Printer, FileText, RotateCcw, Check } from 'lucide-react';
+import { Download, Printer, FileText, RotateCcw, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { VariablesList } from '@/components/template/VariablesList';
 import { DocumentPreview } from '@/components/template/DocumentPreview';
 import type { TemplateVariable, UploadedDocument } from '@/types/document';
 import { supabase } from '@/integrations/supabase/client';
+import { generateExportHtml, generateDocxHtml, getEmptyRequiredVariables } from '@/lib/template-utils';
+import { toast } from 'sonner';
 import html2pdf from 'html2pdf.js';
 
 interface ReviewViewProps {
@@ -40,7 +42,6 @@ export function ReviewView({
   useEffect(() => {
     const extractWithAI = async () => {
       try {
-        // Convert document files to base64 (images and PDFs)
         const supportedDocs = documents.filter(
           doc => doc.file.type.startsWith('image/') || doc.file.type === 'application/pdf'
         );
@@ -101,18 +102,24 @@ export function ReviewView({
     );
   }, []);
 
-  const getProcessedHtml = useCallback(() => {
-    let processed = templateContent;
-    variables.forEach((variable) => {
-      const pattern = new RegExp(`\\{\\{${variable.name}\\}\\}|\\[${variable.name}\\]`, 'gi');
-      const value = variable.value || `{{${variable.displayName}}}`;
-      processed = processed.replace(pattern, value);
-    });
-    return `<div style="font-family: Georgia, serif; line-height: 1.8; color: #1a1a1a; padding: 2rem;">${processed}</div>`;
-  }, [templateContent, variables]);
+  const validateBeforeExport = useCallback((): boolean => {
+    const empty = getEmptyRequiredVariables(variables);
+    if (empty.length > 0) {
+      const names = empty.map(v => v.displayName).join(', ');
+      toast.warning(`Campos obrigatórios vazios: ${names}`, {
+        description: 'Preencha todos os campos obrigatórios antes de exportar.',
+        duration: 5000,
+      });
+      // Focus on first empty required field
+      setSelectedVariableId(empty[0].id);
+      return false;
+    }
+    return true;
+  }, [variables]);
 
   const handleDownloadPdf = useCallback(() => {
-    const html = getProcessedHtml();
+    if (!validateBeforeExport()) return;
+    const html = generateExportHtml(templateContent, variables);
     const container = document.createElement('div');
     container.innerHTML = html;
     html2pdf()
@@ -125,14 +132,12 @@ export function ReviewView({
       })
       .from(container)
       .save();
-  }, [getProcessedHtml]);
+    onExport('pdf');
+  }, [templateContent, variables, validateBeforeExport, onExport]);
 
   const handleDownloadDocx = useCallback(() => {
-    const html = getProcessedHtml();
-    const docContent = `
-      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-      <head><meta charset="utf-8"><style>body { font-family: Georgia, serif; line-height: 1.8; }</style></head>
-      <body>${html}</body></html>`;
+    if (!validateBeforeExport()) return;
+    const docContent = generateDocxHtml(templateContent, variables);
     const blob = new Blob(['\ufeff', docContent], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -140,11 +145,19 @@ export function ReviewView({
     a.download = 'documento.doc';
     a.click();
     URL.revokeObjectURL(url);
-  }, [getProcessedHtml]);
+    onExport('docx');
+  }, [templateContent, variables, validateBeforeExport, onExport]);
+
+  const handlePrint = useCallback(() => {
+    if (!validateBeforeExport()) return;
+    window.print();
+    onExport('print');
+  }, [validateBeforeExport, onExport]);
 
   const filledCount = variables.filter((v) => v.value).length;
   const totalCount = variables.length;
   const progress = totalCount > 0 ? (filledCount / totalCount) * 100 : 0;
+  const emptyRequired = getEmptyRequiredVariables(variables);
 
   return (
     <div className="flex flex-col">
@@ -153,6 +166,12 @@ export function ReviewView({
         subtitle="Confira os dados extraídos e faça ajustes se necessário"
       >
         <div className="flex items-center gap-4">
+          {emptyRequired.length > 0 && !isProcessing && (
+            <div className="flex items-center gap-1.5 text-warning text-sm">
+              <AlertTriangle className="h-4 w-4" />
+              {emptyRequired.length} campo(s) pendente(s)
+            </div>
+          )}
           <div className="text-right">
             <p className="text-sm font-medium text-foreground">
               {filledCount}/{totalCount} campos
@@ -201,9 +220,7 @@ export function ReviewView({
             </motion.div>
           )}
 
-          {/* Split View */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left: Form */}
             <div className="flex flex-col">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-medium text-foreground">Dados Extraídos</h3>
@@ -221,7 +238,6 @@ export function ReviewView({
               </div>
             </div>
 
-            {/* Right: Preview */}
             <div className="min-h-[500px]">
               <DocumentPreview
                 content={templateContent}
@@ -231,7 +247,6 @@ export function ReviewView({
             </div>
           </div>
 
-          {/* Action Bar */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -253,7 +268,7 @@ export function ReviewView({
                 Baixar Word
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={handlePrint}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
               >
                 <Printer className="h-4 w-4" />
