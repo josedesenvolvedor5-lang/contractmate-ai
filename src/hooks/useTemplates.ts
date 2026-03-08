@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Template, TemplateVariable } from '@/types/document';
 import { contratoTemplates } from '@/data/contractTemplates';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const TEMPLATES_KEY = 'templates';
 
