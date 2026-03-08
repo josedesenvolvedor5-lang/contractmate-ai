@@ -1,12 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Printer, FileText, RotateCcw, AlertTriangle, Maximize2, Minimize2, PenLine, Eye } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { VariablesList } from '@/components/template/VariablesList';
 import { DocumentPreview } from '@/components/template/DocumentPreview';
-import type { TemplateVariable, UploadedDocument } from '@/types/document';
+import type { TemplateVariable, UploadedDocument, Party } from '@/types/document';
 import { supabase } from '@/integrations/supabase/client';
-import { generateExportHtml, generateDocxHtml, getEmptyRequiredVariables } from '@/lib/template-utils';
+import { generateExportHtml, generateDocxHtml, getEmptyRequiredVariables, detectParties } from '@/lib/template-utils';
 import { toast } from 'sonner';
 import html2pdf from 'html2pdf.js';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,13 @@ export function ReviewView({
   onExport, 
   onBack 
 }: ReviewViewProps) {
-  const [variables, setVariables] = useState<TemplateVariable[]>(initialVariables);
+  // Detect parties from variables
+  const { parties, variables: partyVariables } = useMemo(
+    () => detectParties(initialVariables),
+    [initialVariables]
+  );
+
+  const [variables, setVariables] = useState<TemplateVariable[]>(partyVariables);
   const [selectedVariableId, setSelectedVariableId] = useState<string | undefined>();
   const [isProcessing, setIsProcessing] = useState(true);
   const [processingError, setProcessingError] = useState<string | null>(null);
@@ -55,33 +61,79 @@ export function ReviewView({
           return;
         }
 
-        const base64Files = await Promise.all(
-          supportedDocs.map(doc => fileToBase64(doc.file))
-        );
-
-        const variablesPayload = initialVariables.map(v => ({
-          name: v.name,
-          displayName: v.displayName,
-        }));
-
-        const images = base64Files.filter(b => !b.startsWith('data:application/pdf'));
-        const pdfs = base64Files.filter(b => b.startsWith('data:application/pdf'));
-
-        const { data, error } = await supabase.functions.invoke('extract-document-data', {
-          body: { variables: variablesPayload, images, pdfs },
-        });
-
-        if (error) {
-          console.error('Extraction error:', error);
-          setProcessingError('Erro ao processar documentos. Preencha manualmente.');
-          setIsProcessing(false);
-          return;
+        // Group documents by party
+        const docsByParty = new Map<string, typeof supportedDocs>();
+        for (const doc of supportedDocs) {
+          const key = doc.partyId || 'general';
+          if (!docsByParty.has(key)) docsByParty.set(key, []);
+          docsByParty.get(key)!.push(doc);
         }
 
-        const results: Array<{ name: string; value: string; confidence: number }> = data?.results || [];
+        // Group variables by party
+        const varsByParty = new Map<string, typeof partyVariables>();
+        for (const v of partyVariables) {
+          const key = v.party || 'general';
+          if (!varsByParty.has(key)) varsByParty.set(key, []);
+          varsByParty.get(key)!.push(v);
+        }
 
-        const updated = initialVariables.map(v => {
-          const match = results.find(r => r.name.toLowerCase() === v.name.toLowerCase());
+        // If we have parties, extract per-party for better accuracy
+        const allResults: Array<{ name: string; value: string; confidence: number }> = [];
+
+        if (parties.length > 0) {
+          // Extract per party
+          const extractionPromises = [...new Set([...docsByParty.keys(), ...varsByParty.keys()])].map(async (partyKey) => {
+            const partyDocs = docsByParty.get(partyKey) || docsByParty.get('general') || [];
+            const partyVars = varsByParty.get(partyKey) || [];
+            // Also include general docs for each party
+            const generalDocs = partyKey !== 'general' ? (docsByParty.get('general') || []) : [];
+            const allPartyDocs = [...partyDocs, ...generalDocs];
+
+            if (partyVars.length === 0 || allPartyDocs.length === 0) return;
+
+            const base64Files = await Promise.all(allPartyDocs.map(doc => fileToBase64(doc.file)));
+            const images = base64Files.filter(b => !b.startsWith('data:application/pdf'));
+            const pdfs = base64Files.filter(b => b.startsWith('data:application/pdf'));
+
+            const party = parties.find(p => p.id === partyKey);
+            const partyContext = party ? `Estes documentos pertencem ao "${party.label}". ` : '';
+
+            const { data, error } = await supabase.functions.invoke('extract-document-data', {
+              body: {
+                variables: partyVars.map(v => ({ name: v.name, displayName: v.displayName })),
+                images,
+                pdfs,
+                partyContext,
+              },
+            });
+
+            if (!error && data?.results) {
+              allResults.push(...data.results);
+            }
+          });
+
+          await Promise.all(extractionPromises);
+        } else {
+          // No parties - extract all at once
+          const base64Files = await Promise.all(supportedDocs.map(doc => fileToBase64(doc.file)));
+          const images = base64Files.filter(b => !b.startsWith('data:application/pdf'));
+          const pdfs = base64Files.filter(b => b.startsWith('data:application/pdf'));
+
+          const { data, error } = await supabase.functions.invoke('extract-document-data', {
+            body: {
+              variables: partyVariables.map(v => ({ name: v.name, displayName: v.displayName })),
+              images,
+              pdfs,
+            },
+          });
+
+          if (!error && data?.results) {
+            allResults.push(...data.results);
+          }
+        }
+
+        const updated = partyVariables.map(v => {
+          const match = allResults.find(r => r.name.toLowerCase() === v.name.toLowerCase());
           if (match && match.value) {
             return { ...v, value: match.value, confidence: match.confidence, source: 'IA' };
           }
@@ -98,13 +150,12 @@ export function ReviewView({
     };
 
     extractWithAI();
-  }, [initialVariables, documents]);
+  }, [partyVariables, documents, parties]);
 
   const handleVariableChange = useCallback((id: string, value: string) => {
     setVariables((prev) =>
       prev.map((v) => (v.id === id ? { ...v, value, confidence: 1 } : v))
     );
-    // Reset edited HTML when variables change so preview re-renders
     setEditedHtml(null);
   }, []);
 
@@ -176,7 +227,6 @@ export function ReviewView({
     onExport('print');
   }, [validateBeforeExport, onExport]);
 
-  // Escape key exits fullscreen
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isFullscreen) setIsFullscreen(false);
@@ -209,6 +259,7 @@ export function ReviewView({
           <h3 className="heading-3 text-foreground mb-2">Processando documentos...</h3>
           <p className="text-muted-foreground">
             A IA está extraindo os dados dos {documents.length} documento(s) enviado(s)
+            {parties.length > 0 && ` de ${parties.length} parte(s)`}
           </p>
         </div>
       </motion.div>
@@ -217,7 +268,6 @@ export function ReviewView({
 
   return (
     <>
-      {/* Fullscreen overlay */}
       <AnimatePresence>
         {isFullscreen && (
           <motion.div
@@ -226,7 +276,6 @@ export function ReviewView({
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-background flex flex-col"
           >
-            {/* Fullscreen header */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-card">
               <div className="flex items-center gap-4">
                 <h3 className="heading-3 text-foreground">Edição do Documento</h3>
@@ -253,7 +302,6 @@ export function ReviewView({
                   </button>
                 </div>
               </div>
-
               <div className="flex items-center gap-3">
                 <div className="text-sm text-muted-foreground">
                   {filledCount}/{totalCount} campos • <span className="text-xs">ESC para sair</span>
@@ -261,16 +309,13 @@ export function ReviewView({
                 <button
                   onClick={() => setIsFullscreen(false)}
                   className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                  title="Sair da tela cheia"
                 >
                   <Minimize2 className="h-5 w-5" />
                 </button>
               </div>
             </div>
 
-            {/* Fullscreen content */}
             <div className="flex-1 flex overflow-hidden">
-              {/* Variables sidebar in fullscreen */}
               <div className="w-80 border-r border-border overflow-auto scrollbar-thin p-4 bg-card/50">
                 <div className="mb-3">
                   <h4 className="text-sm font-medium text-foreground mb-1">Dados Extraídos</h4>
@@ -278,13 +323,12 @@ export function ReviewView({
                 </div>
                 <VariablesList
                   variables={variables}
+                  parties={parties}
                   onVariableChange={handleVariableChange}
                   onVariableSelect={setSelectedVariableId}
                   selectedVariableId={selectedVariableId}
                 />
               </div>
-
-              {/* Document area */}
               <div className="flex-1 overflow-hidden">
                 <DocumentPreview
                   content={templateContent}
@@ -296,7 +340,6 @@ export function ReviewView({
               </div>
             </div>
 
-            {/* Fullscreen action bar */}
             <div className="flex items-center justify-between px-6 py-3 border-t border-border bg-card">
               <button
                 onClick={() => setIsFullscreen(false)}
@@ -305,26 +348,14 @@ export function ReviewView({
                 Voltar
               </button>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handleDownloadDocx}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors text-sm"
-                >
-                  <FileText className="h-4 w-4" />
-                  Word
+                <button onClick={handleDownloadDocx} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors text-sm">
+                  <FileText className="h-4 w-4" /> Word
                 </button>
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors text-sm"
-                >
-                  <Printer className="h-4 w-4" />
-                  Imprimir
+                <button onClick={handlePrint} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors text-sm">
+                  <Printer className="h-4 w-4" /> Imprimir
                 </button>
-                <button
-                  onClick={handleDownloadPdf}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity text-sm"
-                >
-                  <Download className="h-4 w-4" />
-                  Baixar PDF
+                <button onClick={handleDownloadPdf} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity text-sm">
+                  <Download className="h-4 w-4" /> Baixar PDF
                 </button>
               </div>
             </div>
@@ -332,7 +363,6 @@ export function ReviewView({
         )}
       </AnimatePresence>
 
-      {/* Normal view */}
       <div className="flex flex-col">
         <PageHeader
           title="Revisão do Documento"
@@ -348,7 +378,6 @@ export function ReviewView({
             <button
               onClick={() => setIsFullscreen(true)}
               className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors text-sm"
-              title="Tela cheia"
             >
               <Maximize2 className="h-4 w-4" />
               Tela Cheia
@@ -387,13 +416,13 @@ export function ReviewView({
             <div className="overflow-auto scrollbar-thin pr-2 max-h-[calc(100vh-16rem)]">
               <VariablesList
                 variables={variables}
+                parties={parties}
                 onVariableChange={handleVariableChange}
                 onVariableSelect={setSelectedVariableId}
                 selectedVariableId={selectedVariableId}
               />
             </div>
           </div>
-
           <div className="min-h-[500px]">
             <DocumentPreview
               content={templateContent}
@@ -410,34 +439,18 @@ export function ReviewView({
           animate={{ opacity: 1, y: 0 }}
           className="mt-6 flex items-center justify-between p-4 rounded-xl bg-card border border-border"
         >
-          <button
-            onClick={onBack}
-            className="px-5 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
-          >
+          <button onClick={onBack} className="px-5 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors">
             Voltar
           </button>
-
           <div className="flex items-center gap-3">
-            <button
-              onClick={handleDownloadDocx}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
-            >
-              <FileText className="h-4 w-4" />
-              Baixar Word
+            <button onClick={handleDownloadDocx} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors">
+              <FileText className="h-4 w-4" /> Baixar Word
             </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors"
-            >
-              <Printer className="h-4 w-4" />
-              Imprimir
+            <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-foreground font-medium hover:bg-secondary transition-colors">
+              <Printer className="h-4 w-4" /> Imprimir
             </button>
-            <button
-              onClick={handleDownloadPdf}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
-            >
-              <Download className="h-4 w-4" />
-              Baixar PDF
+            <button onClick={handleDownloadPdf} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
+              <Download className="h-4 w-4" /> Baixar PDF
             </button>
           </div>
         </motion.div>
