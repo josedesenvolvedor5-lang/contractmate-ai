@@ -56,17 +56,10 @@ INSTRUÇÕES:
       image_url: { url: base64 },
     }));
 
-    const pdfContents = pdfs.map((base64: string) => {
-      // Extract the raw base64 data (remove data:application/pdf;base64, prefix)
-      const rawBase64 = base64.replace(/^data:application\/pdf;base64,/, "");
-      return {
-        type: "file" as const,
-        file: {
-          filename: "document.pdf",
-          file_data: rawBase64,
-        },
-      };
-    });
+    const pdfContents = pdfs.map((base64: string) => ({
+      type: "image_url" as const,
+      image_url: { url: base64 },
+    }));
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
