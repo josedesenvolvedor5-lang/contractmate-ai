@@ -11,6 +11,7 @@ import type { Template, TemplateVariable, UploadedDocument, WorkflowStep } from 
 import { toast } from 'sonner';
 
 const Index = () => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [workflowStep, setWorkflowStep] = useState<WorkflowStep>('select-template');
   const [completedSteps, setCompletedSteps] = useState<WorkflowStep[]>([]);
@@ -92,9 +93,18 @@ const Index = () => {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar currentPage={currentPage} onNavigate={handleNavigate} />
+      <Sidebar
+        currentPage={currentPage}
+        onNavigate={handleNavigate}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
       
-      <main className="flex-1 ml-16 sm:ml-64 transition-all duration-200">
+      <motion.main
+        animate={{ marginLeft: sidebarCollapsed ? 72 : 256 }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        className="flex-1"
+      >
         {/* Workflow Steps Header */}
         {isWorkflow && (
           <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border px-8 py-4">
@@ -188,7 +198,7 @@ const Index = () => {
             )}
           </AnimatePresence>
         </div>
-      </main>
+      </motion.main>
     </div>
   );
 };
