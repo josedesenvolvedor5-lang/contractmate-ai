@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Camera, FileText, Image } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { FileUploadZone } from '@/components/upload/FileUploadZone';
 import type { UploadedDocument, TemplateVariable } from '@/types/document';
@@ -10,12 +10,6 @@ interface DocumentUploadViewProps {
   onComplete: (documents: UploadedDocument[]) => void;
   onBack: () => void;
 }
-
-const documentSlots = [
-  { id: 'rg-cnh', name: 'RG / CNH', description: 'Documento de identificação com foto' },
-  { id: 'comprovante', name: 'Comprovante Endereço', description: 'Conta de luz, água ou telefone' },
-  { id: 'outros', name: 'Documento 3', description: 'Outros documentos necessários' },
-];
 
 export function DocumentUploadView({ variables, onComplete, onBack }: DocumentUploadViewProps) {
   const [files, setFiles] = useState<UploadedDocument[]>([]);
@@ -29,8 +23,8 @@ export function DocumentUploadView({ variables, onComplete, onBack }: DocumentUp
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
-        title="Elaboração de Requerimentos"
-        subtitle="Inclua os documentos necessários em cada espaço:"
+        title="Envio de Documentos"
+        subtitle="Envie os documentos do cliente para extração automática pela IA"
       />
 
       {/* Variables Summary */}
@@ -53,30 +47,8 @@ export function DocumentUploadView({ variables, onComplete, onBack }: DocumentUp
         </motion.div>
       )}
 
-      {/* Document Slots Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {documentSlots.map((slot, index) => (
-          <motion.div
-            key={slot.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="card-elevated p-6 text-center"
-          >
-            <h3 className="heading-3 text-card-foreground mb-2">{slot.name}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{slot.description}</p>
-            
-            <div className="aspect-video rounded-lg bg-secondary border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-accent transition-colors">
-              <Camera className="h-8 w-8 text-muted-foreground mb-2" />
-              <span className="text-xs text-muted-foreground">Clique ou arraste</span>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Multi-Upload Zone */}
+      {/* Upload Zone */}
       <div className="mb-8">
-        <h3 className="heading-3 text-foreground mb-4">Ou envie todos de uma vez</h3>
         <FileUploadZone
           title="Upload em lote"
           description="Arraste todos os documentos do cliente: RG, CNH, comprovantes, certidões, etc."
